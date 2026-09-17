@@ -1,0 +1,22 @@
+services:
+  frontend_prod:
+    build: ./frontend
+    container_name: frontend_prod
+    restart: unless-stopped
+    env_file:
+      - ./frontend/.env
+    networks:
+      - web
+
+  backend_prod:
+    build: ./backend
+    container_name: backend_prod
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
