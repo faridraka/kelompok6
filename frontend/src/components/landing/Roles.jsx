@@ -75,7 +75,7 @@ const ArrowIcon = () => (
 )
 
 const RoleCard = ({ role }) => (
-  <div className="flex flex-1 flex-col items-center">
+  <div className="flex flex-1 flex-col items-center" id='choose-your-role'>
     <img src={role.icon} alt="" aria-hidden="true" width={320} height={320} className="mb-4 h-14 w-14 drop-shadow-[0_0_5px_rgba(240,201,107,0.2)] sm:h-16 sm:w-16" />
 
     <article className="flex w-full flex-1 flex-col overflow-hidden border border-white/10 bg-navy-900/70 backdrop-blur-sm">

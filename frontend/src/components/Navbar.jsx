@@ -4,11 +4,11 @@ import Logo from './Logo'
 
 const NAV_LINKS = [
   { label: 'Find your coach', to: '/coaches' },
-  { label: 'Apply as a coach', to: '/register?role=coach' },
+  { label: 'Choose your role', href: '#choose-your-role' },
   { label: 'How it works', href: '#how-it-works' },
 ]
 
-const LOGIN_PATH = '/login'
+const REGISTER_PATH = '/register'
 
 const linkClass =
   'font-display text-[13px] font-semibold uppercase tracking-wide text-white transition-colors hover:text-cyan-glow focus-visible:text-cyan-glow focus-visible:outline-none'
@@ -30,13 +30,13 @@ const NavItem = ({ item, onClick, className }) =>
     </a>
   )
 
-const LoginButton = ({ onClick, className = '' }) => (
+const RegisterButton = ({ onClick, className = '' }) => (
   <Link
-    to={LOGIN_PATH}
+    to={REGISTER_PATH}
     onClick={onClick}
     className={`items-center justify-center gap-4 bg-royal-500 px-5 py-[18px] font-display text-[17px] font-semibold uppercase leading-none tracking-wide text-white transition-colors hover:bg-royal-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow ${className}`}
   >
-    Member login
+    JOIN NOW
     <ArrowIcon />
   </Link>
 )
@@ -72,7 +72,7 @@ const Navbar = () => {
           </ul>
         </div>
 
-        <LoginButton className="hidden lg:inline-flex" />
+        <RegisterButton className="hidden lg:inline-flex" />
 
         <button
           type="button"
@@ -104,7 +104,7 @@ const Navbar = () => {
             </li>
           ))}
         </ul>
-        <LoginButton onClick={close} className="mt-6 flex w-full" />
+        <RegisterButton onClick={close} className="mt-6 flex w-full" />
       </div>
     </header>
   )
