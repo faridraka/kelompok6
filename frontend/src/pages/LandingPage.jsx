@@ -4,6 +4,7 @@ import StatsBar from '../components/landing/StatsBar'
 import MapBackdrop from '../components/landing/MapBackdrop'
 import Roles from '../components/landing/Roles'
 import HowItWorks from '../components/landing/HowItWorks'
+import CtaBanner from '../components/landing/CtaBanner'
 
 const LandingPage = () => {
   return (
@@ -15,6 +16,7 @@ const LandingPage = () => {
         <MapBackdrop>
           <Roles />
           <HowItWorks />
+          <CtaBanner />
         </MapBackdrop>
       </main>
     </>
