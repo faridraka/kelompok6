@@ -1,1 +1,46 @@
 @import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   MetaGames theme
+   Navy / royal blue base taken from the MLBB UI, cyan + gold taken
+   from the MetaGames logo.
+------------------------------------------------------------------- */
+@theme {
+  --color-navy-950: #050d24;
+  --color-navy-900: #0a1a3f;
+  --color-navy-800: #102a5c;
+
+  --color-royal-500: #2a5ad8;
+  --color-royal-600: #1f4fa3;
+  --color-royal-700: #173d82;
+
+  --color-periwinkle-300: #a9b8f0;
+
+  --color-cyan-glow: #00e5ff;
+
+  --color-gold-300: #ffe685;
+  --color-gold-400: #f0c96b;
+  --color-gold-500: #f5b738;
+
+  --font-display: "Oswald", "Arial Narrow", sans-serif;
+  --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-navy-950);
+    color: #fff;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
