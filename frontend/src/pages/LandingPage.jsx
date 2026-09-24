@@ -1,26 +1,22 @@
-import Navbar from '../components/Navbar'
-import Hero from '../components/landing/Hero'
-import StatsBar from '../components/landing/StatsBar'
-import MapBackdrop from '../components/landing/MapBackdrop'
-import Roles from '../components/landing/Roles'
-import HowItWorks from '../components/landing/HowItWorks'
-import CtaBanner from '../components/landing/CtaBanner'
+import CtaBanner from "../components/landing/CtaBanner";
+import Hero from "../components/landing/Hero";
+import HowItWorks from "../components/landing/HowItWorks";
+import MapBackdrop from "../components/landing/MapBackdrop";
+import Roles from "../components/landing/Roles";
+import StatsBar from "../components/landing/StatsBar";
 
 const LandingPage = () => {
   return (
     <>
-      <Navbar />
-      <main>
-        <Hero />
-        <StatsBar />
-        <MapBackdrop>
-          <Roles />
-          <HowItWorks />
-          <CtaBanner />
-        </MapBackdrop>
-      </main>
+      <Hero />
+      <StatsBar />
+      <MapBackdrop>
+        <Roles />
+        <HowItWorks />
+        <CtaBanner />
+      </MapBackdrop>
     </>
-  )
-}
+  );
+};
 
-export default LandingPage
+export default LandingPage;
