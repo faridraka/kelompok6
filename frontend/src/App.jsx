@@ -1,8 +1,16 @@
+import { Outlet } from "react-router"
+import Footer from "./components/Footer"
+import Navbar from "./components/Navbar"
+
 const App = () => {
   return (
-    <div>
-      <h1 className="text-3xl font-bold underline">Test</h1>
-    </div>
+    <>
+      <Navbar />
+      <main>
+        <Outlet />
+      </main>
+      <Footer />
+    </>
   )
 }
 
