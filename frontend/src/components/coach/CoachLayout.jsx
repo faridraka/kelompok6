@@ -1,22 +1,13 @@
-// CoachLayout
-// Wrapper layout untuk semua halaman Coach Perspective.
-// Terdiri dari: CoachSidebar (kiri) + area konten utama (kanan).
-// Semua halaman Coach cukup dibungkus dengan <CoachLayout>.
-
-import CoachSidebar from './CoachSidebar'
+import CoachTopNav from './CoachTopNav'
 
 const CoachLayout = ({ children }) => {
   return (
-    <div className="flex min-h-screen bg-navy-950">
-      <CoachSidebar />
+    <div className="min-h-screen bg-navy-950">
+      <CoachTopNav />
 
-      {/* Area konten utama */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Konten halaman */}
-        <main className="flex-1 overflow-y-auto px-6 py-8 lg:px-8 lg:py-10">
-          {children}
-        </main>
-      </div>
+      <main className="mx-auto w-full max-w-[1650px] px-4 lg:px-8">
+        {children}
+      </main>
     </div>
   )
 }

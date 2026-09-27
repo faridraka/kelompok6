@@ -4,17 +4,22 @@ import { createBrowserRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 
 import './index.css'
+
 import App from './App.jsx'
 import LandingPage from './pages/LandingPage.jsx'
-import CoachDashboard from './pages/coach/CoachDashboard.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import RegisterPage from './pages/RegisterPage.jsx'
+import CoachDashboard from './components/coach/CoachDashboard.jsx'
 
 const router = createBrowserRouter([
   {
     path: '/',
     Component: App,
     children: [
-      { index: true, Component: LandingPage }
-    ]
+      { index: true, Component: LandingPage },
+      { path: 'login', Component: LoginPage },
+      { path: 'register', Component: RegisterPage },
+    ],
   },
   {
     path: '/coach/dashboard',

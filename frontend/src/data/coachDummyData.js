@@ -1,9 +1,3 @@
-// =============================================================
-// DUMMY DATA — Coach Perspective
-// Ganti isi file ini dengan data asli dari API nanti.
-// Struktur tiap objek sudah disesuaikan dengan model data PRD.
-// =============================================================
-
 export const coachProfile = {
   name: 'Raka Pratama',
   game: 'Mobile Legends: Bang Bang',
@@ -12,7 +6,6 @@ export const coachProfile = {
   avatarInitials: 'RP',
 }
 
-// Summary bar — 4 angka di bagian atas dashboard
 export const coachSummary = {
   activeCoaching: 3,
   upcomingSessions: 2,
@@ -20,7 +13,6 @@ export const coachSummary = {
   availableBalance: 450000,
 }
 
-// Sesi yang akan datang (Upcoming Sessions)
 export const upcomingSessions = [
   {
     id: 1,
@@ -30,7 +22,7 @@ export const upcomingSessions = [
     totalSessions: 3,
     date: '2026-09-25',
     time: '19:00',
-    status: 'confirmed',       // 'confirmed' | 'waiting_link' | 'pending'
+    status: 'confirmed',
     meetingLink: 'https://meet.google.com/abc-defg-hij',
   },
   {
@@ -46,7 +38,6 @@ export const upcomingSessions = [
   },
 ]
 
-// Daftar player yang sedang aktif coaching
 export const activeCoachingList = [
   {
     id: 1,
@@ -77,11 +68,10 @@ export const activeCoachingList = [
   },
 ]
 
-// Tugas yang belum diselesaikan Coach
 export const pendingTasks = [
   {
     id: 1,
-    type: 'schedule_session',   // untuk link ke halaman schedule nanti
+    type: 'schedule_session',
     label: 'Schedule Session',
     detail: 'Fajar Nugroho — Session 1',
     urgent: true,
@@ -109,8 +99,7 @@ export const pendingTasks = [
   },
 ]
 
-// Saldo Coach
 export const coachWallet = {
-  availableBalance: 450000,   // bisa ditarik
-  pendingBalance: 300000,     // masih escrow
+  availableBalance: 450000,
+  pendingBalance: 300000,
 }

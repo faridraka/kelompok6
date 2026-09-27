@@ -1,10 +1,4 @@
-// SummaryCard
-// Menampilkan satu angka statistik dengan label dan aksen warna.
-// Dipakai 4x di CoachDashboard untuk: Active Coaching, Upcoming Sessions,
-// Pending Reviews, Available Balance.
-
 const SummaryCard = ({ label, value, accent = 'default' }) => {
-  // Warna value berdasarkan tipe kartu
   const accentClass = {
     default: 'text-white',
     gold:    'text-gold-400',

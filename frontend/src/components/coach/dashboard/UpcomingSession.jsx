@@ -1,15 +1,12 @@
-// UpcomingSession
-// Menampilkan daftar sesi yang akan datang dalam bentuk tabel sederhana.
-
 const STATUS_LABEL = {
-  confirmed:    { text: 'Confirmed',    className: 'text-cyan-glow' },
+  confirmed: { text: 'Confirmed', className: 'text-cyan-glow' },
   waiting_link: { text: 'Waiting Link', className: 'text-gold-400' },
-  pending:      { text: 'Pending',      className: 'text-white/50' },
+  pending: { text: 'Pending', className: 'text-white/50' },
 }
 
-// Format tanggal: "2026-09-25" → "Thu, 25 Sep 2026"
 const formatDate = (dateStr) => {
   const d = new Date(dateStr)
+
   return d.toLocaleDateString('en-GB', {
     weekday: 'short',
     day: 'numeric',
@@ -19,7 +16,11 @@ const formatDate = (dateStr) => {
 }
 
 const ArrowIcon = () => (
-  <svg viewBox="0 0 8 12" className="h-2.5 w-1.5 fill-current" aria-hidden="true">
+  <svg
+    viewBox="0 0 8 12"
+    className="h-2.5 w-1.5 fill-current"
+    aria-hidden="true"
+  >
     <path d="M0 0l8 6-8 6z" />
   </svg>
 )
@@ -35,16 +36,17 @@ const UpcomingSession = ({ sessions }) => {
 
   return (
     <div className="border border-white/10 bg-navy-900">
-      {/* Header tabel — hanya tampil di md ke atas */}
       <div className="hidden grid-cols-[1fr_1fr_auto_1fr_auto_auto] gap-4 border-b border-white/10 px-6 py-3 md:grid">
         {['Player', 'Game', 'Session', 'Date & Time', 'Status', ''].map((h) => (
-          <p key={h} className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">
+          <p
+            key={h}
+            className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40"
+          >
             {h}
           </p>
         ))}
       </div>
 
-      {/* Baris data */}
       {sessions.map((s, i) => {
         const status = STATUS_LABEL[s.status] ?? STATUS_LABEL.pending
 
@@ -55,34 +57,30 @@ const UpcomingSession = ({ sessions }) => {
               i < sessions.length - 1 ? 'border-b border-white/10' : ''
             }`}
           >
-            {/* Player */}
             <p className="font-semibold text-white">{s.playerName}</p>
 
-            {/* Game */}
             <p className="text-sm text-white/70">{s.game}</p>
 
-            {/* Session number */}
-            <p className="text-sm text-periwinkle-300 whitespace-nowrap">
+            <p className="whitespace-nowrap text-sm text-periwinkle-300">
               Session {s.sessionNumber}/{s.totalSessions}
             </p>
 
-            {/* Date & Time */}
-            <p className="text-sm text-white/70 whitespace-nowrap">
+            <p className="whitespace-nowrap text-sm text-white/70">
               {formatDate(s.date)}&nbsp;&nbsp;{s.time}
             </p>
 
-            {/* Status */}
-            <p className={`text-sm font-semibold whitespace-nowrap ${status.className}`}>
+            <p
+              className={`whitespace-nowrap text-sm font-semibold ${status.className}`}
+            >
               {status.text}
             </p>
 
-            {/* Tombol Open Meeting */}
             {s.meetingLink ? (
               <a
                 href={s.meetingLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 bg-royal-500 px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-royal-600 whitespace-nowrap"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap bg-royal-500 px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-royal-600"
               >
                 Open Meeting
                 <ArrowIcon />
@@ -91,7 +89,7 @@ const UpcomingSession = ({ sessions }) => {
               <button
                 type="button"
                 disabled
-                className="inline-flex items-center justify-center gap-2 border border-white/15 px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-white/30 whitespace-nowrap cursor-not-allowed"
+                className="inline-flex cursor-not-allowed items-center justify-center gap-2 whitespace-nowrap border border-white/15 px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-white/30"
               >
                 No Link Yet
               </button>
