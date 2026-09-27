@@ -5,6 +5,7 @@ import { RouterProvider } from 'react-router/dom'
 
 import './index.css'
 import LandingPage from './pages/LandingPage.jsx'
+import CoachesPage from './pages/CoachesPage.jsx'
 import App from './App.jsx'
 
 const router = createBrowserRouter([
@@ -12,7 +13,8 @@ const router = createBrowserRouter([
     path: "/",
     Component: App,
     children: [
-      { index: true, Component: LandingPage }
+      { index: true, Component: LandingPage },
+      { path: "coaches", Component: CoachesPage },
     ]
   }
 ])
