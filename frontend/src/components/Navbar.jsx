@@ -4,8 +4,8 @@ import Logo from './Logo'
 
 const NAV_LINKS = [
   { label: 'Find your coach', to: '/coaches' },
-  { label: 'Choose your role', href: '#choose-your-role' },
-  { label: 'How it works', href: '#how-it-works' },
+  { label: 'Choose your role', href: '/#choose-your-role' },
+  { label: 'How it works', href: '/#how-it-works' },
 ]
 
 const REGISTER_PATH = '/register'
