@@ -1,10 +1,5 @@
 @import "tailwindcss";
 
-/* ------------------------------------------------------------------
-   MetaGames theme
-   Navy / royal blue base taken from the MLBB UI, cyan + gold taken
-   from the MetaGames logo.
-------------------------------------------------------------------- */
 @theme {
   --color-navy-950: #050d24;
   --color-navy-900: #0a1a3f;
