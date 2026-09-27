@@ -5,6 +5,9 @@ import { RouterProvider } from 'react-router/dom'
 
 import './index.css'
 
+import LandingPage from './pages/LandingPage.jsx'
+import CoachesPage from './pages/CoachesPage.jsx'
+import CoachDetailsPage from './pages/CoachDetailsPage.jsx'
 import App from './App.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
@@ -25,6 +28,10 @@ const router = createBrowserRouter([
     path: '/coach/dashboard',
     element: <CoachDashboard />,
   },
+      { path: "coaches", Component: CoachesPage },
+      { path: "coaches/:id", Component: CoachDetailsPage },
+    ]
+  }
 ])
 
 createRoot(document.getElementById('root')).render(
