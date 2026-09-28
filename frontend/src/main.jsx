@@ -11,6 +11,7 @@ import CoachesPage from './pages/CoachesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import CoachDashboard from './components/coach/CoachDashboard.jsx'
+import NotFoundPage from './pages/NotFoundPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -25,8 +26,12 @@ const router = createBrowserRouter([
   },
   {
     path: '/coach/dashboard',
-    element: <CoachDashboard />,
+    Component: CoachDashboard,
   },
+  {
+    path: '*',
+    Component: NotFoundPage
+  }
 ])
 
 createRoot(document.getElementById('root')).render(
