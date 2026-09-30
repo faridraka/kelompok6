@@ -1,11 +1,10 @@
 import { serve } from '@hono/node-server'
 import { OpenAPIHono } from '@hono/zod-openapi'
-import { logger } from 'hono/logger'
 import { Scalar } from '@scalar/hono-api-reference'
+import { logger } from 'hono/logger'
+import { NODE_ENV, PORT, SERVER_URL } from './config/env.js'
 import routes from './routes/index.js'
 import { AppError } from './utils/error.js'
-import { NODE_ENV, PORT, SERVER_URL } from './config/env.js'
-import { serveStatic } from '@hono/node-server/serve-static'
 
 const app = new OpenAPIHono({
   defaultHook: (result, c) => {
@@ -20,7 +19,7 @@ const app = new OpenAPIHono({
 
 app.use('*', logger())
 
-app.route('/', routes)
+app.route('/api/', routes)
 
 app.onError((err, c) => {
   if (err instanceof AppError) {
@@ -59,8 +58,6 @@ app.doc('/openapi.json', {
   ]
 })
 
-app.use('/favicon.svg', serveStatic({ path: './favicon.svg' }))
-
 app.get(
   '/',
   Scalar({
@@ -71,7 +68,6 @@ app.get(
       title: 'Metagames API Docs',
       description: 'Dokumentasi REST API Metagames — platform coaching game.',
     },
-    favicon: '/favicon.svg',
     layout: "modern",
     darkMode: true,
     hideDarkModeToggle: false,
