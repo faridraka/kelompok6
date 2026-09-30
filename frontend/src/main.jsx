@@ -27,7 +27,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/coach/dashboard',
-    element: <CoachDashboard />,
+    Component: CoachDashboard,
   },
   {
     path: '/dashboard',
