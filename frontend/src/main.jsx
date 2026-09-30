@@ -10,10 +10,6 @@ import LandingPage from './pages/LandingPage.jsx'
 import CoachesPage from './pages/CoachesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
-import CartPage from './pages/CartPage.jsx'
-import CheckoutPage from './pages/CheckoutPage.jsx'
-import PaymentPage from './pages/PaymentPage.jsx'
-import OrderSuccessPage from './pages/OrderSuccessPage.jsx'
 import CoachDashboard from './components/coach/CoachDashboard.jsx'
 
 const router = createBrowserRouter([
@@ -24,11 +20,7 @@ const router = createBrowserRouter([
       { index: true, Component: LandingPage },
       { path: 'login', Component: LoginPage },
       { path: 'register', Component: RegisterPage },
-      { path: 'coaches', Component: CoachesPage },
-      { path: 'cart', Component: CartPage },
-      { path: 'checkout', Component: CheckoutPage },
-      { path: 'payment/:paymentId', Component: PaymentPage },
-      { path: 'orders/:orderId/success', Component: OrderSuccessPage },
+      { path: 'coaches', Component: CoachesPage}
     ],
   },
   {
