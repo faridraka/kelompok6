@@ -15,6 +15,9 @@ import CheckoutPage from './pages/CheckoutPage.jsx'
 import PaymentPage from './pages/PaymentPage.jsx'
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx'
 import CoachDashboard from './components/coach/CoachDashboard.jsx'
+import NotFoundPage from './pages/NotFoundPage.jsx'
+import PlayerDashboardLayout from './components/player/PlayerDashboardLayout.jsx'
+import ProfilePage from './pages/player/ProfilePage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -33,8 +36,22 @@ const router = createBrowserRouter([
   },
   {
     path: '/coach/dashboard',
-    element: <CoachDashboard />,
+    Component: CoachDashboard,
   },
+  {
+    path: '/dashboard',
+    Component: PlayerDashboardLayout,
+    children: [
+      { index: true, element: <div className="p-6">Overview</div> },
+      { path: 'profile', Component: ProfilePage },
+      { path: 'sessions', element: <div className="p-6">Sessions</div> },
+      { path: 'transactions', element: <div className="p-6">Transactions</div> },
+    ],
+   },
+  {
+    path: '*',
+    Component: NotFoundPage
+  }
 ])
 
 createRoot(document.getElementById('root')).render(
