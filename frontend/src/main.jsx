@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, Navigate } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 
 import './index.css'
@@ -14,10 +14,14 @@ import CartPage from './pages/CartPage.jsx'
 import CheckoutPage from './pages/CheckoutPage.jsx'
 import PaymentPage from './pages/PaymentPage.jsx'
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx'
+import PlayerLayout from './components/player/PlayerLayout.jsx'
+import PlayerDashboard from './pages/player/PlayerDashboard.jsx'
+import PlayerSessions from './pages/player/PlayerSessions.jsx'
+import PlayerMaterials from './pages/player/PlayerMaterials.jsx'
+import PlayerVods from './pages/player/PlayerVods.jsx'
+import PlayerAccount from './pages/player/PlayerAccount.jsx'
+import PlayerOrder from './pages/player/PlayerOrder.jsx'
 import CoachDashboard from './components/coach/CoachDashboard.jsx'
-import NotFoundPage from './pages/NotFoundPage.jsx'
-import PlayerDashboardLayout from './components/player/PlayerDashboardLayout.jsx'
-import ProfilePage from './pages/player/ProfilePage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -36,22 +40,21 @@ const router = createBrowserRouter([
   },
   {
     path: '/coach/dashboard',
-    Component: CoachDashboard,
+    element: <CoachDashboard />,
   },
   {
-    path: '/dashboard',
-    Component: PlayerDashboardLayout,
+    path: '/player',
+    Component: PlayerLayout,
     children: [
-      { index: true, element: <div className="p-6">Overview</div> },
-      { path: 'profile', Component: ProfilePage },
-      { path: 'sessions', element: <div className="p-6">Sessions</div> },
-      { path: 'transactions', element: <div className="p-6">Transactions</div> },
+      { index: true, element: <Navigate to="dashboard" replace /> },
+      { path: 'dashboard', Component: PlayerDashboard },
+      { path: 'sessions', Component: PlayerSessions },
+      { path: 'materials', Component: PlayerMaterials },
+      { path: 'vods', Component: PlayerVods },
+      { path: 'account', Component: PlayerAccount },
+      { path: 'orders/:id', Component: PlayerOrder },
     ],
-   },
-  {
-    path: '*',
-    Component: NotFoundPage
-  }
+  },
 ])
 
 createRoot(document.getElementById('root')).render(
