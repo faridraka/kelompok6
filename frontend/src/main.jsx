@@ -13,6 +13,8 @@ import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import ProfilePage from './pages/player/ProfilePage.jsx'
+import CoachDashboard from './components/coach/CoachDashboard.jsx'
+import NotFoundPage from './pages/NotFoundPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -37,8 +39,12 @@ const router = createBrowserRouter([
       { path: 'profile', Component: ProfilePage },
       { path: 'sessions', element: <div className="p-6">Sessions</div> },
       { path: 'transactions', element: <div className="p-6">Transactions</div> },
-  ],
-},
+    ],
+   },
+  {
+    path: '*',
+    Component: NotFoundPage
+  }
 ])
 
 createRoot(document.getElementById('root')).render(
