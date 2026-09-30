@@ -13,7 +13,6 @@ import LandingPage from './pages/LandingPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
 import ProfilePage from './pages/player/ProfilePage.jsx'
-import CoachDashboard from './components/coach/CoachDashboard.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 
 const router = createBrowserRouter([
