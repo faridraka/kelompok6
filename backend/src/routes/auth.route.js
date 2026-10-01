@@ -1,4 +1,7 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { authController } from "../controllers/auth.controller.js";
+import { jsonRes } from "../utils/helper.js";
+import { ErrorSchema } from '../schemas/common.schema.js'
 
 const router = new OpenAPIHono();
 
@@ -7,7 +10,7 @@ const registerRoute = createRoute({
   path: "/register",
   tags: ["Authentication"],
   summary: "Register Account",
-  description: "",
+  description: "Endpoint untuk register sebagai player atau coach",
   responses: {
     200: {
       content: {
@@ -22,19 +25,10 @@ const registerRoute = createRoute({
       },
       description: "API berjalan normal",
     },
-    500: {
-      content: {
-        "application/json": {
-          schema: z.object({
-            message: z.string().openapi({ example: "Internal server error" }),
-          }),
-        },
-      },
-      description: "Terjadi kesalahan pada server",
-    },
+    500: jsonRes(ErrorSchema, 'Internal Server Error')
   },
 });
 
-router.openapi(registerRoute, (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }))
+router.openapi(registerRoute, authController.register)
 
 export default router
