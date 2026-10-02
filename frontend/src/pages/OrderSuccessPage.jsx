@@ -51,8 +51,11 @@ const OrderSuccessPage = () => {
         Your coach will add the meeting link before each session. They may also adjust the time and you&apos;ll be notified.
       </p>
 
-      <div className="mt-8 text-center">
-        <Link to="/coaches" className="inline-flex bg-royal-500 px-8 py-4 font-display text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-royal-600">
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <Link to="/player/sessions" className="inline-flex bg-royal-500 px-8 py-4 font-display text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-royal-600">
+          View my sessions
+        </Link>
+        <Link to="/coaches" className="inline-flex border border-white/20 px-8 py-4 font-display text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:border-white/40">
           Browse more coaches
         </Link>
       </div>

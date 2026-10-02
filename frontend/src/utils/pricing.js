@@ -2,7 +2,7 @@
 // The backend is the source of truth (orders.total_price, invoices.tax/discount).
 // NEXT WEEK: once POST /orders returns tax/total, the final amount shown after
 // payment comes from the server. Update TAX_RATE here to match the backend.
-export const TAX_RATE = 0.1
+export const TAX_RATE = 0.11
 
 export const calcTotals = (price) => {
   const subtotal = Number(price)

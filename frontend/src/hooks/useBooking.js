@@ -3,9 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { getCoach } from '../api/coaches'
 import { getSession } from '../utils/session'
 
-// Shared by Cart + Checkout. Enforces login, loads the coach from ?coach=, and resolves the lane:
-//  - coach teaches 1 lane  -> auto-selected
-//  - coach teaches several -> null until the player picks one (?lane=, set via setLane)
+//These are shared by cart and checkout, also forces player to choose one lane only yay
 export const useBooking = () => {
   const [params, setParams] = useSearchParams()
   const location = useLocation()
@@ -23,7 +21,6 @@ export const useBooking = () => {
     getCoach(coachId)
       .then((coach) => setState(coach ? { status: 'ready', coach } : { status: 'invalid', coach: null }))
       .catch(() => setState({ status: 'invalid', coach: null }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coachId])
 
   const { coach } = state

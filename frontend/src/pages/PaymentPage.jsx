@@ -50,7 +50,7 @@ const PaymentPage = () => {
         <p className="mt-3 font-display text-4xl font-bold text-white">{formatIDR(payment.amount)}</p>
         <p className="mt-1 text-sm text-white/60">Scan the code with any QRIS-enabled app</p>
 
-        {/* NEXT WEEK: render payment.qrPayload here (e.g. a QR lib, or an <img src> if the API returns an image URL). */}
+        {/* TODO: render payment.qrPayload here (e.g. a QR lib, or an <img src> if the API returns an image URL). */}
         <div className="mx-auto mt-6 w-64 bg-white p-3">
           <img src={qrPlaceholder} alt="QRIS placeholder" className="h-full w-full" />
         </div>

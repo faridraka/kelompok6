@@ -68,3 +68,6 @@ export const finishPayment = async (id) => {
   save(db)
   return p
 }
+
+// Used by the player dashboard mock so orders created at checkout show up there.
+export const listOrders = () => Object.values(load().orders)
