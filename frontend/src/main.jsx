@@ -10,6 +10,10 @@ import LandingPage from './pages/LandingPage.jsx'
 import CoachesPage from './pages/CoachesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
+import CartPage from './pages/CartPage.jsx'
+import CheckoutPage from './pages/CheckoutPage.jsx'
+import PaymentPage from './pages/PaymentPage.jsx'
+import OrderSuccessPage from './pages/OrderSuccessPage.jsx'
 import PlayerLayout from './components/player/PlayerLayout.jsx'
 import PlayerDashboard from './pages/player/PlayerDashboard.jsx'
 import PlayerSessions from './pages/player/PlayerSessions.jsx'
@@ -18,6 +22,7 @@ import PlayerVods from './pages/player/PlayerVods.jsx'
 import PlayerAccount from './pages/player/PlayerAccount.jsx'
 import PlayerOrder from './pages/player/PlayerOrder.jsx'
 import CoachDashboard from './components/coach/CoachDashboard.jsx'
+import NotFoundPage from './pages/NotFoundPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -27,7 +32,11 @@ const router = createBrowserRouter([
       { index: true, Component: LandingPage },
       { path: 'login', Component: LoginPage },
       { path: 'register', Component: RegisterPage },
-      { path: 'coaches', Component: CoachesPage}
+      { path: 'coaches', Component: CoachesPage },
+      { path: 'cart', Component: CartPage },
+      { path: 'checkout', Component: CheckoutPage },
+      { path: 'payment/:paymentId', Component: PaymentPage },
+      { path: 'orders/:orderId/success', Component: OrderSuccessPage },
     ],
   },
   {
@@ -47,6 +56,7 @@ const router = createBrowserRouter([
       { path: 'orders/:id', Component: PlayerOrder },
     ],
   },
+  { path: '*', Component: NotFoundPage}
 ])
 
 createRoot(document.getElementById('root')).render(
