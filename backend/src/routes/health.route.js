@@ -1,5 +1,7 @@
 import { OpenAPIHono, z, createRoute } from '@hono/zod-openapi'
 import { healthController } from '../controllers/health.controller.js'
+import { jsonRes } from '../utils/helper.js';
+import { ErrorSchema } from '../schemas/common.schema.js';
 
 const router = new OpenAPIHono();
 
@@ -21,16 +23,7 @@ const healthRoute = createRoute({
       },
       description: 'API berjalan normal',
     },
-    500: {
-      content: {
-        'application/json': {
-          schema: z.object({
-            message: z.string().openapi({ example: 'Internal server error' }),
-          }),
-        },
-      },
-      description: 'Terjadi kesalahan pada server',
-    },
+    500: jsonRes(ErrorSchema('Terjadi kesalahan pada server'), 'Terjadi kesalahan pada server'),
   },
 })
 
