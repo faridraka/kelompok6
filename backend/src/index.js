@@ -1,17 +1,16 @@
 import { serve } from '@hono/node-server'
 import { OpenAPIHono } from '@hono/zod-openapi'
-import { logger } from 'hono/logger'
 import { Scalar } from '@scalar/hono-api-reference'
+import { logger } from 'hono/logger'
+import { NODE_ENV, PORT, SERVER_URL } from './config/env.js'
 import routes from './routes/index.js'
 import { AppError } from './utils/error.js'
-import { NODE_ENV, PORT, SERVER_URL } from './config/env.js'
-import { serveStatic } from '@hono/node-server/serve-static'
 
 const app = new OpenAPIHono({
   defaultHook: (result, c) => {
     if (!result.success) {
       return c.json(
-        { message: 'Validasi gagal', errors: result.error.flatten() },
+        { message: 'Validasi gagal', errors: result.error.issues },
         422
       )
     }
@@ -20,7 +19,14 @@ const app = new OpenAPIHono({
 
 app.use('*', logger())
 
-app.route('/', routes)
+app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {
+  type: 'http',
+  scheme: 'bearer',
+  bearerFormat: 'JWT',
+  description: 'Gunakan token JWT yang valid.',
+})
+
+app.route('/api/', routes)
 
 app.onError((err, c) => {
   if (err instanceof AppError) {
@@ -56,22 +62,23 @@ app.doc('/openapi.json', {
   ],
   tags: [
     { name: "System", description: "System related endpoints" },
+    { name: "Authentication", description: "Authentication related endpoints" },
   ]
 })
-
-app.use('/favicon.svg', serveStatic({ path: './favicon.svg' }))
 
 app.get(
   '/',
   Scalar({
     url: '/openapi.json',
+    authentication:{
+      preferredSecurityScheme: 'Bearer',
+    },
     theme: 'purple',
     pageTitle: 'API Docs — Metagames API',
     metaData: {
       title: 'Metagames API Docs',
       description: 'Dokumentasi REST API Metagames — platform coaching game.',
     },
-    favicon: '/favicon.svg',
     layout: "modern",
     darkMode: true,
     hideDarkModeToggle: false,
