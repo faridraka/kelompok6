@@ -10,7 +10,7 @@ const app = new OpenAPIHono({
   defaultHook: (result, c) => {
     if (!result.success) {
       return c.json(
-        { message: 'Validasi gagal', errors: result.error.flatten() },
+        { message: 'Validasi gagal', errors: result.error.issues },
         422
       )
     }
@@ -18,6 +18,13 @@ const app = new OpenAPIHono({
 })
 
 app.use('*', logger())
+
+app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {
+  type: 'http',
+  scheme: 'bearer',
+  bearerFormat: 'JWT',
+  description: 'Gunakan token JWT yang valid.',
+})
 
 app.route('/api/', routes)
 
@@ -55,6 +62,7 @@ app.doc('/openapi.json', {
   ],
   tags: [
     { name: "System", description: "System related endpoints" },
+    { name: "Authentication", description: "Authentication related endpoints" },
   ]
 })
 
@@ -62,6 +70,9 @@ app.get(
   '/',
   Scalar({
     url: '/openapi.json',
+    authentication:{
+      preferredSecurityScheme: 'Bearer',
+    },
     theme: 'purple',
     pageTitle: 'API Docs — Metagames API',
     metaData: {
