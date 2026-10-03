@@ -1,16 +1,10 @@
     import { useMemo, useState, useEffect } from 'react'
     import { useSearchParams } from 'react-router'
+    import { FiSearch } from 'react-icons/fi'
 
     import { generateCoaches } from '../data/coaches'
     import CoachCard from '../components/coaches/CoachCard'
     import LaneFilter from '../components/coaches/LaneFilter'
-
-    const SearchIcon = () => (
-    <svg viewBox="0 0 20 20" className="h-4 w-4 text-white/50" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <circle cx="9" cy="9" r="6.5" />
-        <path d="M18 18l-4.3-4.3" strokeLinecap="round" />
-    </svg>
-    )
 
     const ALL_COACHES = generateCoaches(9)
 
@@ -74,7 +68,7 @@
 
             <div className="relative w-full sm:w-64">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                <SearchIcon />
+                <FiSearch className="h-4 w-4 text-white/50" aria-hidden="true" />
             </span>
             <input
                 type="text"

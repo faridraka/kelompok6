@@ -2,75 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { request } from '../api/client'
 import { setSession } from '../utils/session'
-
-
-const EyeIcon = ({ open }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    className="h-5 w-5"
-    aria-hidden="true"
-  >
-    {open ? (
-      <>
-        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-        <circle cx="12" cy="12" r="2.5" />
-      </>
-    ) : (
-      <>
-        <path d="m3 3 18 18" />
-        <path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.1 3.8" />
-        <path d="M6.1 6.1C3.7 7.8 2.5 12 2.5 12s3.5 6 9.5 6c1.5 0 2.8-.4 4-.9" />
-      </>
-    )}
-  </svg>
-)
-
-const MailIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    className="h-5 w-5"
-    aria-hidden="true"
-  >
-    <rect x="3" y="5" width="18" height="14" rx="1.5" />
-    <path d="m3 7 9 6 9-6" />
-  </svg>
-)
-
-const LockIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    className="h-5 w-5"
-    aria-hidden="true"
-  >
-    <rect x="5" y="10" width="14" height="10" rx="1.5" />
-    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-  </svg>
-)
-
-const ArrowIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    className="h-5 w-5"
-    aria-hidden="true"
-  >
-    <path
-      d="M8 5l7 7-7 7"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="square"
-    />
-  </svg>
-)
+import { FiEye, FiEyeOff, FiMail, FiLock, FiArrowRight } from 'react-icons/fi'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -213,7 +145,7 @@ const LoginPage = () => {
               }`}
             >
               <span className="pl-4 text-white/40">
-                <MailIcon />
+                <FiMail className="h-5 w-5" aria-hidden="true" />
               </span>
 
               <input
@@ -261,7 +193,7 @@ const LoginPage = () => {
               }`}
             >
               <span className="pl-4 text-white/40">
-                <LockIcon />
+                <FiLock className="h-5 w-5" aria-hidden="true" />
               </span>
 
               <input
@@ -287,7 +219,7 @@ const LoginPage = () => {
                 }
                 disabled={isLoading}
               >
-                <EyeIcon open={showPassword} />
+                {showPassword ? <FiEyeOff className="h-5 w-5" aria-hidden="true" /> : <FiEye className="h-5 w-5" aria-hidden="true" />}
               </button>
             </div>
 
@@ -323,7 +255,7 @@ const LoginPage = () => {
             className="mt-7 flex h-[57px] w-full items-center justify-center gap-3 bg-royal-500 font-display text-lg font-bold uppercase tracking-wide text-white transition-colors hover:bg-royal-600 active:bg-royal-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>{isLoading ? 'Signing in…' : 'Sign In'}</span>
-            <ArrowIcon />
+            <FiArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
         </form>
 

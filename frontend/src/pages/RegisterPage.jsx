@@ -1,85 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { request } from '../api/client'
+import { FiEye, FiEyeOff, FiLock, FiMail, FiUser, FiChevronRight } from 'react-icons/fi'
 
-const EyeIcon = ({ open }) =>
-  open ? (
-    <svg
-      viewBox="0 0 20 20"
-      className="h-4 w-4 fill-none stroke-current"
-      aria-hidden="true"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-        d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z"
-      />
-      <circle cx="10" cy="10" r="2.5" strokeWidth="1.5" />
-    </svg>
-  ) : (
-    <svg
-      viewBox="0 0 20 20"
-      className="h-4 w-4 fill-none stroke-current"
-      aria-hidden="true"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-        d="M3 3l14 14M8.5 8.6A2.5 2.5 0 0112.4 12.4M6.3 6.4C4.5 7.6 3 10 3 10s3 6 7 6a6.7 6.7 0 003.7-1.1M10 4c4 0 7 6 7 6a13 13 0 01-1.3 2"
-      />
-    </svg>
-  )
-
-const LockIcon = () => (
-  <svg
-    viewBox="0 0 20 20"
-    className="h-4 w-4 fill-none stroke-white/40"
-    strokeWidth="1.5"
-    aria-hidden="true"
-  >
-    <rect x="4" y="9" width="12" height="9" rx="1" />
-    <path strokeLinecap="round" d="M7 9V6a3 3 0 016 0v3" />
-  </svg>
-)
-
-const MailIcon = () => (
-  <svg
-    viewBox="0 0 20 20"
-    className="h-4 w-4 fill-none stroke-white/40"
-    strokeWidth="1.5"
-    aria-hidden="true"
-  >
-    <rect x="2" y="4" width="16" height="13" rx="1" />
-    <path strokeLinecap="round" d="M2 7l8 5 8-5" />
-  </svg>
-)
-
-const UserIcon = () => (
-  <svg
-    viewBox="0 0 20 20"
-    className="h-4 w-4 fill-none stroke-white/40"
-    strokeWidth="1.5"
-    aria-hidden="true"
-  >
-    <circle cx="10" cy="7" r="3.5" />
-    <path
-      strokeLinecap="round"
-      d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7"
-    />
-  </svg>
-)
-
-const ArrowIcon = () => (
-  <svg
-    viewBox="0 0 8 12"
-    className="h-3 w-2 fill-current"
-    aria-hidden="true"
-  >
-    <path d="M0 0l8 6-8 6z" />
-  </svg>
-)
+const ArrowIcon = () => <FiChevronRight className="h-3 w-2" aria-hidden="true" />
 
 const PlayerIcon = () => (
   <svg
@@ -314,7 +238,7 @@ const RegisterPage = () => {
 
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                    <UserIcon />
+                    <FiUser className="h-4 w-4 text-white/40" aria-hidden="true" />
                   </span>
 
                   <input
@@ -349,7 +273,7 @@ const RegisterPage = () => {
 
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                    <MailIcon />
+                    <FiMail className="h-4 w-4 text-white/40" aria-hidden="true" />
                   </span>
 
                   <input
@@ -390,7 +314,7 @@ const RegisterPage = () => {
 
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                    <LockIcon />
+                    <FiLock className="h-4 w-4 text-white/40" aria-hidden="true" />
                   </span>
 
                   <input
@@ -418,7 +342,7 @@ const RegisterPage = () => {
                     disabled={isLoading}
                     className="absolute inset-y-0 right-3 flex items-center text-white/40 transition-colors hover:text-white/70"
                   >
-                    <EyeIcon open={showPassword} />
+                    {showPassword ? <FiEyeOff className="h-4 w-4" aria-hidden="true" /> : <FiEye className="h-4 w-4" aria-hidden="true" />}
                   </button>
                 </div>
 
@@ -439,7 +363,7 @@ const RegisterPage = () => {
 
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                    <LockIcon />
+                    <FiLock className="h-4 w-4 text-white/40" aria-hidden="true" />
                   </span>
 
                   <input
@@ -469,7 +393,7 @@ const RegisterPage = () => {
                     disabled={isLoading}
                     className="absolute inset-y-0 right-3 flex items-center text-white/40 transition-colors hover:text-white/70"
                   >
-                    <EyeIcon open={showConfirm} />
+                    {showConfirm ? <FiEyeOff className="h-4 w-4" aria-hidden="true" /> : <FiEye className="h-4 w-4" aria-hidden="true" />}
                   </button>
                 </div>
 

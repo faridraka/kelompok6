@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
+import { FiMenu, FiX } from 'react-icons/fi'
 
 import Logo from '../Logo'
 import { getStoredUser } from '../../utils/session'
@@ -122,21 +123,7 @@ const CoachTopNav = () => {
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             className="flex h-10 w-10 items-center justify-center text-white xl:hidden"
           >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              {mobileOpen ? (
-                <path d="M5 5l14 14M19 5L5 19" />
-              ) : (
-                <path d="M4 7h16M4 12h16M4 17h16" />
-              )}
-            </svg>
+            {mobileOpen ? <FiX className="h-6 w-6" aria-hidden="true" /> : <FiMenu className="h-6 w-6" aria-hidden="true" />}
           </button>
         </div>
       </div>
