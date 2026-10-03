@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Navigate, NavLink, Outlet, Link } from 'react-router'
+import { NavLink, Outlet, Link, useNavigate } from 'react-router'
 import Logo from '../Logo'
 import PlayerBackdrop from './PlayerBackdrop'
-import { getSession } from '../../utils/session'
+import { clearSession, getStoredUser } from '../../utils/session'
 
 const I = (d) => <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
 const QUICK = [
@@ -12,6 +12,14 @@ const QUICK = [
   { to: '/player/vods', label: 'Coaching VODs', icon: 'M4 6h12a2 2 0 012 2v8a2 2 0 01-2 2H4zM18 10l4-2v8l-4-2' },
 ]
 const ACCOUNT = [{ to: '/player/account', label: 'My Account', icon: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c.8-4 3.8-6 8-6s7.2 2 8 6' }]
+
+const LogoutIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+)
 
 const NavItem = ({ item, onClick }) => (
   <NavLink to={item.to} onClick={onClick}
@@ -29,8 +37,14 @@ const Group = ({ title, items, close }) => (
 
 const PlayerLayout = () => {
   const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
+  const user = getStoredUser()
   const close = () => setOpen(false)
-  if (getSession()?.accountType !== 'player') return <Navigate to="/login" replace />
+
+  const handleLogout = () => {
+    clearSession()
+    navigate('/', { replace: true })
+  }
 
   return (
     <div className="relative isolate min-h-screen bg-navy-950 lg:flex">
@@ -45,6 +59,22 @@ const PlayerLayout = () => {
         <Link to="/" className="mb-8 hidden px-2 lg:block"><Logo className="h-10 w-auto" /></Link>
         <Group title="Quick links" items={QUICK} close={close} />
         <Group title="Account" items={ACCOUNT} close={close} />
+        <div className="mt-8 border-t border-white/10 pt-4">
+          {user && (
+            <div className="px-3 mb-4 text-sm text-white/60">
+              <p className="font-semibold text-white">{user.name}</p>
+              <p className="text-xs text-white/50 truncate">{user.email}</p>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 px-3 py-2.5 text-sm font-semibold text-white/75 hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <LogoutIcon />
+            Logout
+          </button>
+        </div>
       </aside>
       <main className="min-w-0 flex-1 px-5 py-8 lg:px-10 lg:py-10"><Outlet /></main>
     </div>

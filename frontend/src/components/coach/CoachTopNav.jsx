@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
 
 import Logo from '../Logo'
-import { coachProfile } from '../../data/coachDummyData'
+import { getStoredUser } from '../../utils/session'
 
 const NAV_ITEMS = [
   { to: '/coach/dashboard', label: 'Dashboard' },
@@ -14,12 +14,22 @@ const NAV_ITEMS = [
 
 const PROFILE_PATH = '/coach/profile'
 
-const AvatarBadge = ({ className = '' }) => (
+const getInitials = (name) => {
+  if (!name) return 'CO'
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+const AvatarBadge = ({ name, className = '' }) => (
   <span
     className={`flex h-7 w-7 shrink-0 items-center justify-center bg-royal-600 font-display text-xs font-bold text-white ${className}`}
     aria-hidden="true"
   >
-    {coachProfile.avatarInitials}
+    {getInitials(name)}
   </span>
 )
 
@@ -60,6 +70,7 @@ const MobileNavItem = ({ item, active, onClick }) => (
 const CoachTopNav = () => {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const user = getStoredUser()
 
   const isActive = (to) => location.pathname === to
   const closeMobile = () => setMobileOpen(false)
@@ -97,10 +108,10 @@ const CoachTopNav = () => {
                 : 'border-white/15 text-white/70 hover:border-white/30 hover:text-white'
             }`}
           >
-            <AvatarBadge />
+            <AvatarBadge name={user?.name} />
 
             <span className="font-display text-sm font-semibold uppercase tracking-wide">
-              {coachProfile.name.split(' ')[0]}
+              {user?.name?.split(' ')[0] || 'Coach'}
             </span>
           </Link>
 
@@ -155,7 +166,7 @@ const CoachTopNav = () => {
                     : 'text-white/70'
                 }`}
               >
-                <AvatarBadge />
+                <AvatarBadge name={user?.name} />
                 Profile
               </Link>
             </li>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
+import { request } from '../api/client'
+import { setSession } from '../utils/session'
 
-import Logo from '../components/Logo'
 
 const EyeIcon = ({ open }) => (
   <svg
@@ -82,12 +83,16 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState({})
   const [successMessage, setSuccessMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (location.state?.registered) {
-      setSuccessMessage(
-        'Account created successfully. You can now sign in.',
-      )
+      // Use setTimeout to avoid synchronous state update in effect
+      setTimeout(() => {
+        setSuccessMessage(
+          'Account created successfully. You can now sign in.',
+        )
+      }, 0)
       navigate('/login', {
         replace: true,
         state: {},
@@ -128,7 +133,7 @@ const LoginPage = () => {
     return Object.keys(nextErrors).length === 0
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setSuccessMessage('')
 
@@ -136,62 +141,34 @@ const LoginPage = () => {
       return
     }
 
-    const storedUser = localStorage.getItem('metagames_user')
-
-    if (!storedUser) {
-      setErrors({
-        submit: 'No account found. Please create an account first.',
-      })
-      return
-    }
-
-    let user
+    setIsLoading(true)
+    setErrors({})
 
     try {
-      user = JSON.parse(storedUser)
-    } catch {
-      setErrors({
-        submit: 'Your saved account is invalid. Please register again.',
+      const response = await request('/auth/login', {
+        method: 'POST',
+        body: {
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+        },
       })
-      return
-    }
 
-    const normalizedEmail = formData.email.trim().toLowerCase()
+      // Backend returns: { access_token, refresh_token, expires_at, user: { id, email, role } }
+      setSession(response)
 
-    if (
-      user.email?.toLowerCase() !== normalizedEmail ||
-      user.password !== formData.password
-    ) {
-      setErrors({
-        submit: 'Incorrect email or password.',
-      })
-      return
-    }
-
-    if (!['player', 'coach'].includes(user.accountType)) {
-      setErrors({
-        submit:
-          'Account type is missing. Please create your account again.',
-      })
-      return
-    }
-
-    const session = {
-      email: user.email,
-      accountType: user.accountType,
-    }
-
-    localStorage.setItem(
-      'metagames_session',
-      JSON.stringify(session),
-    )
-
-    const destination =
-      user.accountType === 'coach'
+      // Role-based redirect: coach -> dashboard, player -> home
+      const destination = response.user?.role === 'coach'
         ? '/coach/dashboard'
         : '/'
 
-    navigate(destination)
+      navigate(destination, { replace: true })
+    } catch (err) {
+      setErrors({
+        submit: err.message || 'Login failed. Please try again.',
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -248,6 +225,7 @@ const LoginPage = () => {
                 placeholder="player@pro-domain.gg"
                 autoComplete="email"
                 className="h-full w-full bg-transparent px-3 text-white outline-none placeholder:text-white/30"
+                disabled={isLoading}
               />
             </div>
 
@@ -295,6 +273,7 @@ const LoginPage = () => {
                 placeholder="Your password"
                 autoComplete="current-password"
                 className="h-full w-full bg-transparent px-3 text-white outline-none placeholder:text-white/30"
+                disabled={isLoading}
               />
 
               <button
@@ -306,6 +285,7 @@ const LoginPage = () => {
                     ? 'Hide password'
                     : 'Show password'
                 }
+                disabled={isLoading}
               >
                 <EyeIcon open={showPassword} />
               </button>
@@ -327,6 +307,7 @@ const LoginPage = () => {
                   setRememberMe(event.target.checked)
                 }
                 className="h-4 w-4 accent-[#2a5ad8]"
+                disabled={isLoading}
               />
               <span>Remember me</span>
             </label>
@@ -338,9 +319,10 @@ const LoginPage = () => {
 
           <button
             type="submit"
-            className="mt-7 flex h-[57px] w-full items-center justify-center gap-3 bg-royal-500 font-display text-lg font-bold uppercase tracking-wide text-white transition-colors hover:bg-royal-600 active:bg-royal-700"
+            disabled={isLoading}
+            className="mt-7 flex h-[57px] w-full items-center justify-center gap-3 bg-royal-500 font-display text-lg font-bold uppercase tracking-wide text-white transition-colors hover:bg-royal-600 active:bg-royal-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>Sign In</span>
+            <span>{isLoading ? 'Signing in…' : 'Sign In'}</span>
             <ArrowIcon />
           </button>
         </form>

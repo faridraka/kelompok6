@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { request } from '../api/client'
 
 const EyeIcon = ({ open }) =>
   open ? (
@@ -147,6 +148,7 @@ const RegisterPage = () => {
     confirmPassword: '',
   })
   const [errors, setErrors] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -199,7 +201,7 @@ const RegisterPage = () => {
     return nextErrors
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     const nextErrors = validate()
@@ -209,38 +211,33 @@ const RegisterPage = () => {
       return
     }
 
-    const normalizedEmail = formData.email.trim().toLowerCase()
-    const existingUser = localStorage.getItem('metagames_user')
+    setIsLoading(true)
+    setErrors({})
 
-    if (existingUser) {
-      try {
-        const parsedUser = JSON.parse(existingUser)
+    try {
+      // Backend expects: { name, email, password, role }
+      await request('/auth/register', {
+        method: 'POST',
+        body: {
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+          role: accountType,
+        },
+      })
 
-        if (parsedUser.email === normalizedEmail) {
-          setErrors({
-            submit: 'An account with this email already exists.',
-          })
-          return
-        }
-      } catch {
-        localStorage.removeItem('metagames_user')
-      }
+      navigate('/login', {
+        state: {
+          registered: true,
+        },
+      })
+    } catch (err) {
+      setErrors({
+        submit: err.message || 'Registration failed. Please try again.',
+      })
+    } finally {
+      setIsLoading(false)
     }
-
-    const user = {
-      name: formData.name.trim(),
-      email: normalizedEmail,
-      password: formData.password,
-      accountType,
-    }
-
-    localStorage.setItem('metagames_user', JSON.stringify(user))
-
-    navigate('/login', {
-      state: {
-        registered: true,
-      },
-    })
   }
 
   return (
@@ -281,6 +278,7 @@ const RegisterPage = () => {
                         type="button"
                         onClick={() => setAccountType(type.value)}
                         aria-pressed={isActive}
+                        disabled={isLoading}
                         className={`group flex min-h-[64px] items-center gap-3 border px-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow ${
                           isActive
                             ? 'border-royal-500 bg-royal-500/15 text-white'
@@ -327,6 +325,7 @@ const RegisterPage = () => {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Your Name"
+                    disabled={isLoading}
                     className={`w-full border bg-navy-950 py-3 pl-9 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none ${
                       errors.name
                         ? 'border-red-400/70'
@@ -361,6 +360,7 @@ const RegisterPage = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="@gmail.com"
+                    disabled={isLoading}
                     className={`w-full border bg-navy-950 py-3 pl-9 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none ${
                       errors.email
                         ? 'border-red-400/70'
@@ -401,6 +401,7 @@ const RegisterPage = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Create a strong password"
+                    disabled={isLoading}
                     className={`w-full border bg-navy-950 py-3 pl-9 pr-11 text-sm text-white placeholder:text-white/30 focus:outline-none ${
                       errors.password
                         ? 'border-red-400/70'
@@ -414,6 +415,7 @@ const RegisterPage = () => {
                     aria-label={
                       showPassword ? 'Hide password' : 'Show password'
                     }
+                    disabled={isLoading}
                     className="absolute inset-y-0 right-3 flex items-center text-white/40 transition-colors hover:text-white/70"
                   >
                     <EyeIcon open={showPassword} />
@@ -448,6 +450,7 @@ const RegisterPage = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="Re-enter your password"
+                    disabled={isLoading}
                     className={`w-full border bg-navy-950 py-3 pl-9 pr-11 text-sm text-white placeholder:text-white/30 focus:outline-none ${
                       errors.confirmPassword
                         ? 'border-red-400/70'
@@ -463,6 +466,7 @@ const RegisterPage = () => {
                         ? 'Hide confirm password'
                         : 'Show confirm password'
                     }
+                    disabled={isLoading}
                     className="absolute inset-y-0 right-3 flex items-center text-white/40 transition-colors hover:text-white/70"
                   >
                     <EyeIcon open={showConfirm} />
@@ -487,6 +491,7 @@ const RegisterPage = () => {
                       agreed: '',
                     }))
                   }}
+                  disabled={isLoading}
                   className="mt-0.5 accent-royal-500"
                 />
 
@@ -522,10 +527,10 @@ const RegisterPage = () => {
 
               <button
                 type="submit"
-                disabled={!agreed}
+                disabled={!agreed || isLoading}
                 className="flex w-full items-center justify-center gap-4 bg-royal-500 px-6 py-[15px] font-display text-[15px] font-semibold uppercase leading-none tracking-wide text-white transition-colors hover:bg-royal-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Create Account
+                {isLoading ? 'Creating account…' : 'Create Account'}
                 <ArrowIcon />
               </button>
             </form>
