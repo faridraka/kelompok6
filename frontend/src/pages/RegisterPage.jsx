@@ -1,84 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { request } from '../api/client'
+import { FiEye, FiEyeOff, FiLock, FiMail, FiUser, FiChevronRight } from 'react-icons/fi'
 
-const EyeIcon = ({ open }) =>
-  open ? (
-    <svg
-      viewBox="0 0 20 20"
-      className="h-4 w-4 fill-none stroke-current"
-      aria-hidden="true"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-        d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z"
-      />
-      <circle cx="10" cy="10" r="2.5" strokeWidth="1.5" />
-    </svg>
-  ) : (
-    <svg
-      viewBox="0 0 20 20"
-      className="h-4 w-4 fill-none stroke-current"
-      aria-hidden="true"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-        d="M3 3l14 14M8.5 8.6A2.5 2.5 0 0112.4 12.4M6.3 6.4C4.5 7.6 3 10 3 10s3 6 7 6a6.7 6.7 0 003.7-1.1M10 4c4 0 7 6 7 6a13 13 0 01-1.3 2"
-      />
-    </svg>
-  )
-
-const LockIcon = () => (
-  <svg
-    viewBox="0 0 20 20"
-    className="h-4 w-4 fill-none stroke-white/40"
-    strokeWidth="1.5"
-    aria-hidden="true"
-  >
-    <rect x="4" y="9" width="12" height="9" rx="1" />
-    <path strokeLinecap="round" d="M7 9V6a3 3 0 016 0v3" />
-  </svg>
-)
-
-const MailIcon = () => (
-  <svg
-    viewBox="0 0 20 20"
-    className="h-4 w-4 fill-none stroke-white/40"
-    strokeWidth="1.5"
-    aria-hidden="true"
-  >
-    <rect x="2" y="4" width="16" height="13" rx="1" />
-    <path strokeLinecap="round" d="M2 7l8 5 8-5" />
-  </svg>
-)
-
-const UserIcon = () => (
-  <svg
-    viewBox="0 0 20 20"
-    className="h-4 w-4 fill-none stroke-white/40"
-    strokeWidth="1.5"
-    aria-hidden="true"
-  >
-    <circle cx="10" cy="7" r="3.5" />
-    <path
-      strokeLinecap="round"
-      d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7"
-    />
-  </svg>
-)
-
-const ArrowIcon = () => (
-  <svg
-    viewBox="0 0 8 12"
-    className="h-3 w-2 fill-current"
-    aria-hidden="true"
-  >
-    <path d="M0 0l8 6-8 6z" />
-  </svg>
-)
+const ArrowIcon = () => <FiChevronRight className="h-3 w-2" aria-hidden="true" />
 
 const PlayerIcon = () => (
   <svg
@@ -147,6 +72,7 @@ const RegisterPage = () => {
     confirmPassword: '',
   })
   const [errors, setErrors] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -199,7 +125,7 @@ const RegisterPage = () => {
     return nextErrors
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     const nextErrors = validate()
@@ -209,38 +135,33 @@ const RegisterPage = () => {
       return
     }
 
-    const normalizedEmail = formData.email.trim().toLowerCase()
-    const existingUser = localStorage.getItem('metagames_user')
+    setIsLoading(true)
+    setErrors({})
 
-    if (existingUser) {
-      try {
-        const parsedUser = JSON.parse(existingUser)
+    try {
+      // Backend expects: { name, email, password, role }
+      await request('/auth/register', {
+        method: 'POST',
+        body: {
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+          role: accountType,
+        },
+      })
 
-        if (parsedUser.email === normalizedEmail) {
-          setErrors({
-            submit: 'An account with this email already exists.',
-          })
-          return
-        }
-      } catch {
-        localStorage.removeItem('metagames_user')
-      }
+      navigate('/login', {
+        state: {
+          registered: true,
+        },
+      })
+    } catch (err) {
+      setErrors({
+        submit: err.message || 'Registration failed. Please try again.',
+      })
+    } finally {
+      setIsLoading(false)
     }
-
-    const user = {
-      name: formData.name.trim(),
-      email: normalizedEmail,
-      password: formData.password,
-      accountType,
-    }
-
-    localStorage.setItem('metagames_user', JSON.stringify(user))
-
-    navigate('/login', {
-      state: {
-        registered: true,
-      },
-    })
   }
 
   return (
@@ -281,6 +202,7 @@ const RegisterPage = () => {
                         type="button"
                         onClick={() => setAccountType(type.value)}
                         aria-pressed={isActive}
+                        disabled={isLoading}
                         className={`group flex min-h-[64px] items-center gap-3 border px-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow ${
                           isActive
                             ? 'border-royal-500 bg-royal-500/15 text-white'
@@ -316,7 +238,7 @@ const RegisterPage = () => {
 
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                    <UserIcon />
+                    <FiUser className="h-4 w-4 text-white/40" aria-hidden="true" />
                   </span>
 
                   <input
@@ -327,6 +249,7 @@ const RegisterPage = () => {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Your Name"
+                    disabled={isLoading}
                     className={`w-full border bg-navy-950 py-3 pl-9 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none ${
                       errors.name
                         ? 'border-red-400/70'
@@ -350,7 +273,7 @@ const RegisterPage = () => {
 
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                    <MailIcon />
+                    <FiMail className="h-4 w-4 text-white/40" aria-hidden="true" />
                   </span>
 
                   <input
@@ -361,6 +284,7 @@ const RegisterPage = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="@gmail.com"
+                    disabled={isLoading}
                     className={`w-full border bg-navy-950 py-3 pl-9 pr-4 text-sm text-white placeholder:text-white/30 focus:outline-none ${
                       errors.email
                         ? 'border-red-400/70'
@@ -390,7 +314,7 @@ const RegisterPage = () => {
 
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                    <LockIcon />
+                    <FiLock className="h-4 w-4 text-white/40" aria-hidden="true" />
                   </span>
 
                   <input
@@ -401,6 +325,7 @@ const RegisterPage = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Create a strong password"
+                    disabled={isLoading}
                     className={`w-full border bg-navy-950 py-3 pl-9 pr-11 text-sm text-white placeholder:text-white/30 focus:outline-none ${
                       errors.password
                         ? 'border-red-400/70'
@@ -414,9 +339,10 @@ const RegisterPage = () => {
                     aria-label={
                       showPassword ? 'Hide password' : 'Show password'
                     }
+                    disabled={isLoading}
                     className="absolute inset-y-0 right-3 flex items-center text-white/40 transition-colors hover:text-white/70"
                   >
-                    <EyeIcon open={showPassword} />
+                    {showPassword ? <FiEyeOff className="h-4 w-4" aria-hidden="true" /> : <FiEye className="h-4 w-4" aria-hidden="true" />}
                   </button>
                 </div>
 
@@ -437,7 +363,7 @@ const RegisterPage = () => {
 
                 <div className="relative">
                   <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                    <LockIcon />
+                    <FiLock className="h-4 w-4 text-white/40" aria-hidden="true" />
                   </span>
 
                   <input
@@ -448,6 +374,7 @@ const RegisterPage = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="Re-enter your password"
+                    disabled={isLoading}
                     className={`w-full border bg-navy-950 py-3 pl-9 pr-11 text-sm text-white placeholder:text-white/30 focus:outline-none ${
                       errors.confirmPassword
                         ? 'border-red-400/70'
@@ -463,9 +390,10 @@ const RegisterPage = () => {
                         ? 'Hide confirm password'
                         : 'Show confirm password'
                     }
+                    disabled={isLoading}
                     className="absolute inset-y-0 right-3 flex items-center text-white/40 transition-colors hover:text-white/70"
                   >
-                    <EyeIcon open={showConfirm} />
+                    {showConfirm ? <FiEyeOff className="h-4 w-4" aria-hidden="true" /> : <FiEye className="h-4 w-4" aria-hidden="true" />}
                   </button>
                 </div>
 
@@ -487,6 +415,7 @@ const RegisterPage = () => {
                       agreed: '',
                     }))
                   }}
+                  disabled={isLoading}
                   className="mt-0.5 accent-royal-500"
                 />
 
@@ -522,10 +451,10 @@ const RegisterPage = () => {
 
               <button
                 type="submit"
-                disabled={!agreed}
+                disabled={!agreed || isLoading}
                 className="flex w-full items-center justify-center gap-4 bg-royal-500 px-6 py-[15px] font-display text-[15px] font-semibold uppercase leading-none tracking-wide text-white transition-colors hover:bg-royal-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Create Account
+                {isLoading ? 'Creating account…' : 'Create Account'}
                 <ArrowIcon />
               </button>
             </form>

@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { FiChevronRight } from 'react-icons/fi'
 
 import iconGold from '../../assets/roles/role-gold.png'
 import iconExp from '../../assets/roles/role-exp.png'
@@ -68,12 +69,6 @@ const ROLES = [
   },
 ]
 
-const ArrowIcon = () => (
-  <svg viewBox="0 0 8 12" className="h-3 w-2 fill-current" aria-hidden="true">
-    <path d="M0 0l8 6-8 6z" />
-  </svg>
-)
-
 const RoleCard = ({ role }) => (
   <div className="flex flex-1 flex-col items-center" id='choose-your-role'>
     <img src={role.icon} alt="" aria-hidden="true" width={320} height={320} className="mb-4 h-14 w-14 drop-shadow-[0_0_5px_rgba(240,201,107,0.2)] sm:h-16 sm:w-16" />
@@ -100,7 +95,7 @@ const RoleCard = ({ role }) => (
           className="inline-flex items-center justify-center gap-3 bg-navy-950 px-4 py-3 font-display text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow"
         >
           {role.cta}
-          <ArrowIcon />
+          <FiChevronRight className="h-3 w-2" aria-hidden="true" />
         </Link>
       </div>
     </article>

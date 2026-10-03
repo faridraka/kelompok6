@@ -1,18 +1,7 @@
 import { useNavigate } from 'react-router'
 import { laneLabel } from '../../data/coaches'
 import { formatIDR } from '../../utils/format'
-
-const StarIcon = () => (
-  <svg viewBox="0 0 16 16" className="h-3.5 w-3.5 fill-current text-emerald-400" aria-hidden="true">
-    <path d="M8 0l2.47 5.01 5.53.8-4 3.9.94 5.51L8 12.6l-4.94 2.62.94-5.51-4-3.9 5.53-.8z" />
-  </svg>
-)
-
-const ArrowIcon = () => (
-  <svg viewBox="0 0 8 12" className="h-3 w-2 fill-current" aria-hidden="true">
-    <path d="M0 0l8 6-8 6z" />
-  </svg>
-)
+import { FiStar, FiChevronRight } from 'react-icons/fi'
 
 const CoachCard = ({ coach }) => {
   const navigate = useNavigate()
@@ -70,7 +59,7 @@ const CoachCard = ({ coach }) => {
       <div className="flex min-h-[10.5rem] flex-col gap-3 border border-white/15 bg-navy-950/40 p-4">
         <div className="flex gap-0.5">
           {Array.from({ length: coach.rating }).map((_, i) => (
-            <StarIcon key={i} />
+            <FiStar key={i} className="h-3.5 w-3.5 fill-current text-emerald-400" aria-hidden="true" />
           ))}
         </div>
         <p className="line-clamp-3 flex-1 text-sm italic leading-relaxed text-white/90">&ldquo;{coach.testimonial.quote}&rdquo;</p>
@@ -100,7 +89,7 @@ const CoachCard = ({ coach }) => {
           className="inline-flex items-center justify-center gap-3 bg-navy-950 px-5 py-3 font-display text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow"
         >
           Book package
-          <ArrowIcon />
+          <FiChevronRight className="h-3 w-2" aria-hidden="true" />
         </button>
       </div>
     </article>
