@@ -1,75 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
-
-import Logo from '../components/Logo'
-
-const EyeIcon = ({ open }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    className="h-5 w-5"
-    aria-hidden="true"
-  >
-    {open ? (
-      <>
-        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-        <circle cx="12" cy="12" r="2.5" />
-      </>
-    ) : (
-      <>
-        <path d="m3 3 18 18" />
-        <path d="M10.6 6.2A10.8 10.8 0 0 1 12 6c6 0 9.5 6 9.5 6a17 17 0 0 1-3.1 3.8" />
-        <path d="M6.1 6.1C3.7 7.8 2.5 12 2.5 12s3.5 6 9.5 6c1.5 0 2.8-.4 4-.9" />
-      </>
-    )}
-  </svg>
-)
-
-const MailIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    className="h-5 w-5"
-    aria-hidden="true"
-  >
-    <rect x="3" y="5" width="18" height="14" rx="1.5" />
-    <path d="m3 7 9 6 9-6" />
-  </svg>
-)
-
-const LockIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    className="h-5 w-5"
-    aria-hidden="true"
-  >
-    <rect x="5" y="10" width="14" height="10" rx="1.5" />
-    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-  </svg>
-)
-
-const ArrowIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    className="h-5 w-5"
-    aria-hidden="true"
-  >
-    <path
-      d="M8 5l7 7-7 7"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="square"
-    />
-  </svg>
-)
+import { request } from '../api/client'
+import { setSession } from '../utils/session'
+import { FiEye, FiEyeOff, FiMail, FiLock, FiArrowRight } from 'react-icons/fi'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -82,12 +15,16 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState({})
   const [successMessage, setSuccessMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (location.state?.registered) {
-      setSuccessMessage(
-        'Account created successfully. You can now sign in.',
-      )
+      // Use setTimeout to avoid synchronous state update in effect
+      setTimeout(() => {
+        setSuccessMessage(
+          'Account created successfully. You can now sign in.',
+        )
+      }, 0)
       navigate('/login', {
         replace: true,
         state: {},
@@ -128,7 +65,7 @@ const LoginPage = () => {
     return Object.keys(nextErrors).length === 0
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
     setSuccessMessage('')
 
@@ -136,62 +73,34 @@ const LoginPage = () => {
       return
     }
 
-    const storedUser = localStorage.getItem('metagames_user')
-
-    if (!storedUser) {
-      setErrors({
-        submit: 'No account found. Please create an account first.',
-      })
-      return
-    }
-
-    let user
+    setIsLoading(true)
+    setErrors({})
 
     try {
-      user = JSON.parse(storedUser)
-    } catch {
-      setErrors({
-        submit: 'Your saved account is invalid. Please register again.',
+      const response = await request('/auth/login', {
+        method: 'POST',
+        body: {
+          email: formData.email.trim().toLowerCase(),
+          password: formData.password,
+        },
       })
-      return
-    }
 
-    const normalizedEmail = formData.email.trim().toLowerCase()
+      // Backend returns: { access_token, refresh_token, expires_at, user: { id, email, role } }
+      setSession(response)
 
-    if (
-      user.email?.toLowerCase() !== normalizedEmail ||
-      user.password !== formData.password
-    ) {
-      setErrors({
-        submit: 'Incorrect email or password.',
-      })
-      return
-    }
-
-    if (!['player', 'coach'].includes(user.accountType)) {
-      setErrors({
-        submit:
-          'Account type is missing. Please create your account again.',
-      })
-      return
-    }
-
-    const session = {
-      email: user.email,
-      accountType: user.accountType,
-    }
-
-    localStorage.setItem(
-      'metagames_session',
-      JSON.stringify(session),
-    )
-
-    const destination =
-      user.accountType === 'coach'
+      // Role-based redirect: coach -> dashboard, player -> home
+      const destination = response.user?.role === 'coach'
         ? '/coach/dashboard'
         : '/'
 
-    navigate(destination)
+      navigate(destination, { replace: true })
+    } catch (err) {
+      setErrors({
+        submit: err.message || 'Login failed. Please try again.',
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -236,7 +145,7 @@ const LoginPage = () => {
               }`}
             >
               <span className="pl-4 text-white/40">
-                <MailIcon />
+                <FiMail className="h-5 w-5" aria-hidden="true" />
               </span>
 
               <input
@@ -248,6 +157,7 @@ const LoginPage = () => {
                 placeholder="player@pro-domain.gg"
                 autoComplete="email"
                 className="h-full w-full bg-transparent px-3 text-white outline-none placeholder:text-white/30"
+                disabled={isLoading}
               />
             </div>
 
@@ -283,7 +193,7 @@ const LoginPage = () => {
               }`}
             >
               <span className="pl-4 text-white/40">
-                <LockIcon />
+                <FiLock className="h-5 w-5" aria-hidden="true" />
               </span>
 
               <input
@@ -295,6 +205,7 @@ const LoginPage = () => {
                 placeholder="Your password"
                 autoComplete="current-password"
                 className="h-full w-full bg-transparent px-3 text-white outline-none placeholder:text-white/30"
+                disabled={isLoading}
               />
 
               <button
@@ -306,8 +217,9 @@ const LoginPage = () => {
                     ? 'Hide password'
                     : 'Show password'
                 }
+                disabled={isLoading}
               >
-                <EyeIcon open={showPassword} />
+                {showPassword ? <FiEyeOff className="h-5 w-5" aria-hidden="true" /> : <FiEye className="h-5 w-5" aria-hidden="true" />}
               </button>
             </div>
 
@@ -327,6 +239,7 @@ const LoginPage = () => {
                   setRememberMe(event.target.checked)
                 }
                 className="h-4 w-4 accent-[#2a5ad8]"
+                disabled={isLoading}
               />
               <span>Remember me</span>
             </label>
@@ -338,10 +251,11 @@ const LoginPage = () => {
 
           <button
             type="submit"
-            className="mt-7 flex h-[57px] w-full items-center justify-center gap-3 bg-royal-500 font-display text-lg font-bold uppercase tracking-wide text-white transition-colors hover:bg-royal-600 active:bg-royal-700"
+            disabled={isLoading}
+            className="mt-7 flex h-[57px] w-full items-center justify-center gap-3 bg-royal-500 font-display text-lg font-bold uppercase tracking-wide text-white transition-colors hover:bg-royal-600 active:bg-royal-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>Sign In</span>
-            <ArrowIcon />
+            <span>{isLoading ? 'Signing in…' : 'Sign In'}</span>
+            <FiArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
         </form>
 

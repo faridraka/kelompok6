@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { getMaterials } from '../../api/player'
 import { useAsync } from '../../hooks/useAsync'
 import { Async, Empty, PageHeader, Pill } from '../../components/player/ui'
+import { FiChevronRight } from 'react-icons/fi'
 
 const FILTERS = [['all', 'All'], ['guide', 'Champion guides'], ['fundamental', 'Fundamentals']]
 
@@ -14,7 +15,7 @@ const MaterialCard = ({ m }) => (
     {m.description && <p className="mt-3 text-sm leading-relaxed text-white/70">{m.description}</p>}
     <span className="mt-auto flex items-center gap-2 pt-6 text-sm font-semibold text-periwinkle-300 group-hover:text-cyan-glow">
       {m.type === 'guide' ? 'Start guide' : 'Start lesson'}
-      <svg viewBox="0 0 8 12" className="h-3 w-2 fill-current" aria-hidden="true"><path d="M0 0l8 6-8 6z" /></svg>
+      <FiChevronRight className="h-3 w-2" aria-hidden="true" />
     </span>
   </a>
 )

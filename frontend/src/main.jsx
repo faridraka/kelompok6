@@ -23,6 +23,7 @@ import PlayerAccount from './pages/player/PlayerAccount.jsx'
 import PlayerOrder from './pages/player/PlayerOrder.jsx'
 import CoachDashboard from './components/coach/CoachDashboard.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
+import { protectedLoader, guestLoader, coachOnlyLoader } from './routes/authMiddleware'
 
 const router = createBrowserRouter([
   {
@@ -30,22 +31,24 @@ const router = createBrowserRouter([
     Component: App,
     children: [
       { index: true, Component: LandingPage },
-      { path: 'login', Component: LoginPage },
-      { path: 'register', Component: RegisterPage },
+      { path: 'login', Component: LoginPage, loader: guestLoader },
+      { path: 'register', Component: RegisterPage, loader: guestLoader },
       { path: 'coaches', Component: CoachesPage },
-      { path: 'cart', Component: CartPage },
-      { path: 'checkout', Component: CheckoutPage },
-      { path: 'payment/:paymentId', Component: PaymentPage },
-      { path: 'orders/:orderId/success', Component: OrderSuccessPage },
+      { path: 'cart', Component: CartPage, loader: protectedLoader },
+      { path: 'checkout', Component: CheckoutPage, loader: protectedLoader },
+      { path: 'payment/:paymentId', Component: PaymentPage, loader: protectedLoader },
+      { path: 'orders/:orderId/success', Component: OrderSuccessPage, loader: protectedLoader },
     ],
   },
   {
     path: '/coach/dashboard',
     Component: CoachDashboard,
+    loader: coachOnlyLoader,
   },
   {
     path: '/player',
     Component: PlayerLayout,
+    loader: protectedLoader,
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'dashboard', Component: PlayerDashboard },
@@ -56,7 +59,7 @@ const router = createBrowserRouter([
       { path: 'orders/:id', Component: PlayerOrder },
     ],
   },
-  { path: '*', Component: NotFoundPage}
+  { path: '*', Component: NotFoundPage }
 ])
 
 createRoot(document.getElementById('root')).render(

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
+import { FiCheck, FiChevronRight } from 'react-icons/fi'
 
 import heroBg from '../../assets/hero/hero-bg.webp'
 import heroLeft from '../../assets/hero/hero-left.webp'
@@ -16,12 +17,6 @@ const PERKS = [
   '3 live sessions per package',
   'Secure payment',
 ]
-
-const CheckIcon = () => (
-  <svg viewBox="0 0 16 16" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M3 8.5l3.2 3.2L13 4.8" />
-  </svg>
-)
 
 const Hero = () => {
   const [layout, setLayout] = useState(DEFAULT_LAYOUT)
@@ -69,15 +64,13 @@ const Hero = () => {
           className="mt-8 inline-flex items-center justify-center gap-4 bg-royal-500 px-8 py-[18px] font-display text-[17px] font-semibold uppercase leading-none tracking-wide text-white transition-colors hover:bg-royal-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-glow"
         >
           Find your coach
-          <svg viewBox="0 0 8 12" className="h-3 w-2 fill-current" aria-hidden="true">
-            <path d="M0 0l8 6-8 6z" />
-          </svg>
+          <FiChevronRight className="h-4 w-3" aria-hidden="true" />
         </Link>
 
         <ul className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-base text-white sm:text-[17px]">
           {PERKS.map((perk) => (
             <li key={perk} className="flex items-center gap-2">
-              <CheckIcon />
+              <FiCheck className="h-4 w-4 shrink-0 text-gold-400" aria-hidden="true" />
               {perk}
             </li>
           ))}

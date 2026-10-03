@@ -1,19 +1,13 @@
 import { laneLabel } from '../../data/coaches'
 import { formatIDR } from '../../utils/format'
 import { TAX_RATE } from '../../utils/pricing'
+import { FiLock } from 'react-icons/fi'
 
 const Row = ({ label, value, strong }) => (
   <div className={`flex justify-between gap-4 text-sm ${strong ? 'font-semibold text-white' : 'text-white/70'}`}>
     <span>{label}</span>
     <span>{value}</span>
   </div>
-)
-
-const LockIcon = () => (
-  <svg viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current" strokeWidth="1.5" aria-hidden="true">
-    <rect x="4" y="9" width="12" height="9" rx="1" />
-    <path strokeLinecap="round" d="M7 9V6a3 3 0 016 0v3" />
-  </svg>
 )
 
 const OrderSummary = ({ coach, lane, totals, children }) => (
@@ -43,7 +37,7 @@ const OrderSummary = ({ coach, lane, totals, children }) => (
     </div>
 
     <p className="mt-4 flex items-center justify-center gap-2 text-sm text-white/50">
-      <LockIcon /> Secure Checkout
+      <FiLock className="h-4 w-4" aria-hidden="true" /> Secure Checkout
     </p>
   </aside>
 )

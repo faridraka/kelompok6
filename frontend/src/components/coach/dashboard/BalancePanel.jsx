@@ -1,15 +1,6 @@
 const formatRupiah = (amount) =>
   'Rp ' + amount.toLocaleString('id-ID')
-
-const ArrowIcon = () => (
-  <svg
-    viewBox="0 0 8 12"
-    className="h-2.5 w-1.5 fill-current"
-    aria-hidden="true"
-  >
-    <path d="M0 0l8 6-8 6z" />
-  </svg>
-)
+import { FiChevronRight } from 'react-icons/fi'
 
 const BalancePanel = ({ wallet }) => {
   return (
@@ -44,7 +35,7 @@ const BalancePanel = ({ wallet }) => {
           className="inline-flex items-center gap-3 bg-royal-500 px-6 py-3 font-display text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-royal-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow"
         >
           Withdraw Balance
-          <ArrowIcon />
+          <FiChevronRight className="h-2.5 w-1.5" aria-hidden="true" />
         </button>
         <p className="mt-2 text-xs text-white/30">
           Withdrawal requests are processed within 1–2 business days.
