@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { FiChevronRight } from 'react-icons/fi'
 
 import mountain from '../../assets/splashart/image_c427a9ec5f1e5eb7dd584a3575773ba6.png'
 import character from '../../assets/splashart/miya_revamped_transparent_png_by_kujodave_di1ek9b-pre.png'
@@ -7,12 +8,6 @@ const HEADING = ['JOIN NOW & START', 'YOUR CLIMB TODAY!']
 
 const BODY =
   'Stuck at the same rank? Join hundreds of MLBB players breaking plateaus with 1:1 coaching, live gameplay reviews, and ongoing support to reach your peak rank.'
-
-const ArrowIcon = () => (
-  <svg viewBox="0 0 8 12" className="h-3 w-2 fill-current" aria-hidden="true">
-    <path d="M0 0l8 6-8 6z" />
-  </svg>
-)
 
 const CtaBanner = () => {
   return (
@@ -56,7 +51,7 @@ const CtaBanner = () => {
             className="mt-9 inline-flex items-center justify-center gap-4 bg-navy-950 px-7 py-[17px] font-display text-base font-semibold uppercase leading-none tracking-wide text-white transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-glow sm:px-8 sm:text-[17px]"
           >
             Find your coach now
-            <ArrowIcon />
+            <FiChevronRight className="h-3 w-2" aria-hidden="true" />
           </Link>
         </div>
 

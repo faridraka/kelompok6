@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import Logo from './Logo'
+import { isAuthenticated, getUserRole } from '../utils/session'
+import { FiChevronRight, FiMenu, FiX } from 'react-icons/fi'
 
 const NAV_LINKS = [
   { label: 'Find your coach', to: '/coaches' },
@@ -8,16 +10,8 @@ const NAV_LINKS = [
   { label: 'How it works', href: '/#how-it-works' },
 ]
 
-const REGISTER_PATH = '/register'
-
 const linkClass =
   'font-display text-[13px] font-semibold uppercase tracking-wide text-white transition-colors hover:text-cyan-glow focus-visible:text-cyan-glow focus-visible:outline-none'
-
-const ArrowIcon = () => (
-  <svg viewBox="0 0 8 12" className="h-3 w-2 fill-current" aria-hidden="true">
-    <path d="M0 0l8 6-8 6z" />
-  </svg>
-)
 
 const NavItem = ({ item, onClick, className }) =>
   item.to ? (
@@ -30,16 +24,45 @@ const NavItem = ({ item, onClick, className }) =>
     </a>
   )
 
-const RegisterButton = ({ onClick, className = '' }) => (
-  <Link
-    to={REGISTER_PATH}
-    onClick={onClick}
-    className={`items-center justify-center gap-4 bg-royal-500 px-5 py-[18px] font-display text-[17px] font-semibold uppercase leading-none tracking-wide text-white transition-colors hover:bg-royal-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow ${className}`}
-  >
-    JOIN NOW
-    <ArrowIcon />
-  </Link>
-)
+const AuthButton = ({ onClick, className = '' }) => {
+  const navigate = useNavigate()
+  const loggedIn = isAuthenticated()
+  const role = getUserRole()
+
+  const handleClick = (e) => {
+    e.preventDefault()
+    if (onClick) onClick()
+    if (loggedIn) {
+      navigate(role === 'coach' ? '/coach/dashboard' : '/player/dashboard', { replace: true })
+    } else {
+      navigate('/register')
+    }
+  }
+
+  if (loggedIn) {
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        className={`items-center justify-center gap-4 bg-royal-500 px-5 py-[18px] font-display text-[17px] font-semibold uppercase leading-none tracking-wide text-white transition-colors hover:bg-royal-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow ${className}`}
+      >
+        DASHBOARD
+        <FiChevronRight className="h-4 w-4" aria-hidden="true" />
+      </button>
+    )
+  }
+
+  return (
+    <Link
+      to="/register"
+      onClick={onClick}
+      className={`items-center justify-center gap-4 bg-royal-500 px-5 py-[18px] font-display text-[17px] font-semibold uppercase leading-none tracking-wide text-white transition-colors hover:bg-royal-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow ${className}`}
+    >
+      JOIN NOW
+      <FiChevronRight className="h-4 w-4" aria-hidden="true" />
+    </Link>
+  )
+}
 
 const Navbar = () => {
   const [open, setOpen] = useState(false)
@@ -72,7 +95,7 @@ const Navbar = () => {
           </ul>
         </div>
 
-        <RegisterButton className="hidden lg:inline-flex" />
+        <AuthButton className="hidden lg:inline-flex" />
 
         <button
           type="button"
@@ -82,13 +105,11 @@ const Navbar = () => {
           aria-label={open ? 'Close menu' : 'Open menu'}
           className="flex h-11 w-11 items-center justify-center text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow lg:hidden"
         >
-          <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-            {open ? (
-              <path d="M5 5l14 14M19 5L5 19" />
-            ) : (
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            )}
-          </svg>
+          {open ? (
+            <FiX className="h-7 w-7" aria-hidden="true" />
+          ) : (
+            <FiMenu className="h-7 w-7" aria-hidden="true" />
+          )}
         </button>
       </nav>
 
@@ -104,7 +125,7 @@ const Navbar = () => {
             </li>
           ))}
         </ul>
-        <RegisterButton onClick={close} className="mt-6 flex w-full" />
+        <AuthButton onClick={close} className="mt-6 flex w-full" />
       </div>
     </header>
   )

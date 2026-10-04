@@ -1,3 +1,5 @@
+import { FiChevronRight } from 'react-icons/fi'
+
 const STATUS_LABEL = {
   confirmed: { text: 'Confirmed', className: 'text-cyan-glow' },
   waiting_link: { text: 'Waiting Link', className: 'text-gold-400' },
@@ -14,16 +16,6 @@ const formatDate = (dateStr) => {
     year: 'numeric',
   })
 }
-
-const ArrowIcon = () => (
-  <svg
-    viewBox="0 0 8 12"
-    className="h-2.5 w-1.5 fill-current"
-    aria-hidden="true"
-  >
-    <path d="M0 0l8 6-8 6z" />
-  </svg>
-)
 
 const UpcomingSession = ({ sessions }) => {
   if (!sessions || sessions.length === 0) {
@@ -83,7 +75,7 @@ const UpcomingSession = ({ sessions }) => {
                 className="inline-flex items-center justify-center gap-2 whitespace-nowrap bg-royal-500 px-4 py-2 font-display text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-royal-600"
               >
                 Open Meeting
-                <ArrowIcon />
+                <FiChevronRight className="h-2.5 w-1.5" aria-hidden="true" />
               </a>
             ) : (
               <button
