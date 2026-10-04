@@ -15,3 +15,12 @@ export const getStoredUser = () => {
     return null
   }
 }
+
+// DUMMY: there is no coach id in the login data yet. The email decides who the coach is
+// ("faros" -> 1, "seemon" -> 2, anything else -> 1). NEXT: replace with GET /auth/me (AUTH-3)
+// and return the logged-in user's id. This is the ONLY place that knows about coach ids.
+export const getCoachId = () => {
+  const email = (getSession()?.email ?? '').toLowerCase()
+  if (email.includes('seemon')) return 2
+  return 1
+}

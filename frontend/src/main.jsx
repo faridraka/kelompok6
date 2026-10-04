@@ -21,7 +21,12 @@ import PlayerMaterials from './pages/player/PlayerMaterials.jsx'
 import PlayerVods from './pages/player/PlayerVods.jsx'
 import PlayerAccount from './pages/player/PlayerAccount.jsx'
 import PlayerOrder from './pages/player/PlayerOrder.jsx'
-import CoachDashboard from './components/coach/CoachDashboard.jsx'
+import CoachLayout from './components/coach/CoachLayout.jsx'
+import CoachDashboard from './pages/coach/CoachDashboard.jsx'
+import CoachSchedule from './pages/coach/CoachSchedule.jsx'
+import CoachRecords from './pages/coach/CoachRecords.jsx'
+import CoachReviews from './pages/coach/CoachReviews.jsx'
+import CoachProfile from './pages/coach/CoachProfile.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 
 const router = createBrowserRouter([
@@ -40,8 +45,17 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: '/coach/dashboard',
-    Component: CoachDashboard,
+    path: '/coach',
+    Component: CoachLayout,
+    children: [
+      { index: true, element: <Navigate to="dashboard" replace /> },
+      { path: 'dashboard', Component: CoachDashboard },
+      { path: 'schedule', Component: CoachSchedule },
+      { path: 'records', Component: CoachRecords },
+      { path: 'reviews', Component: CoachReviews },
+      { path: 'profile', Component: CoachProfile },
+      { path: '*', element: <Navigate to="/coach/dashboard" replace /> },
+    ],
   },
   {
     path: '/player',

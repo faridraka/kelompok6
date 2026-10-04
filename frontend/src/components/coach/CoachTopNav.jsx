@@ -1,169 +1,70 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router'
-
+import { Link, NavLink } from 'react-router'
 import Logo from '../Logo'
-import { coachProfile } from '../../data/coachDummyData'
+import { useCoachProfile } from '../../hooks/useCoachProfile'
 
 const NAV_ITEMS = [
   { to: '/coach/dashboard', label: 'Dashboard' },
-  { to: '/coach/services', label: 'My Services' },
-  { to: '/coach/sessions', label: 'Sessions' },
-  { to: '/coach/reviews', label: 'Performance Reviews' },
-  { to: '/coach/wallet', label: 'Wallet' },
+  { to: '/coach/schedule', label: 'Schedule' },
+  { to: '/coach/records', label: 'Upload Record' },
+  { to: '/coach/reviews', label: 'Review Player' },
+  { to: '/coach/profile', label: 'Profile' },
 ]
-
-const PROFILE_PATH = '/coach/profile'
-
-const AvatarBadge = ({ className = '' }) => (
-  <span
-    className={`flex h-7 w-7 shrink-0 items-center justify-center bg-royal-600 font-display text-xs font-bold text-white ${className}`}
-    aria-hidden="true"
-  >
-    {coachProfile.avatarInitials}
-  </span>
-)
-
-const NavItem = ({ item, active }) => (
-  <Link
-    to={item.to}
-    className={`relative py-2 font-display text-sm font-semibold uppercase tracking-wide ${
-      active
-        ? 'text-cyan-glow'
-        : 'text-white/70 hover:text-white'
-    }`}
-  >
-    {item.label}
-
-    {active && (
-      <span
-        className="absolute -bottom-px left-0 right-0 h-[2px] bg-cyan-glow"
-        aria-hidden="true"
-      />
-    )}
-  </Link>
-)
-
-const MobileNavItem = ({ item, active, onClick }) => (
-  <li className="border-b border-white/10 last:border-b-0">
-    <Link
-      to={item.to}
-      onClick={onClick}
-      className={`block py-3 font-display text-sm font-semibold uppercase tracking-wide ${
-        active ? 'text-cyan-glow' : 'text-white/70'
-      }`}
-    >
-      {item.label}
-    </Link>
-  </li>
-)
+const linkBase = 'font-display text-sm font-semibold uppercase tracking-wide transition-colors'
 
 const CoachTopNav = () => {
-  const location = useLocation()
-  const [mobileOpen, setMobileOpen] = useState(false)
-
-  const isActive = (to) => location.pathname === to
-  const closeMobile = () => setMobileOpen(false)
+  const [open, setOpen] = useState(false)
+  const close = () => setOpen(false)
+  const { data: coach } = useCoachProfile()
+  const short = coach?.name.replace(/^Coach\s+/i, '') ?? '' // "Coach Faros" -> "Faros"
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-navy-950/80 backdrop-blur-md">
-      <div className="mx-auto flex h-[92px] max-w-[1850px] items-center justify-between gap-6 px-6 lg:px-10">
-        <Link
-          to="/"
-          aria-label="MetaGames home"
-          className="shrink-0"
-        >
-          <Logo className="h-12 w-auto" />
-        </Link>
-
-        <nav
-          aria-label="Coach navigation"
-          className="hidden items-center gap-10 xl:flex"
-        >
-          {NAV_ITEMS.map((item) => (
-            <NavItem
-              key={item.to}
-              item={item}
-              active={isActive(item.to)}
-            />
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-3">
-          <Link
-            to={PROFILE_PATH}
-            className={`hidden items-center gap-2 border px-4 py-2 xl:flex ${
-              isActive(PROFILE_PATH)
-                ? 'border-cyan-glow/50 text-white'
-                : 'border-white/15 text-white/70 hover:border-white/30 hover:text-white'
-            }`}
-          >
-            <AvatarBadge />
-
-            <span className="font-display text-sm font-semibold uppercase tracking-wide">
-              {coachProfile.name.split(' ')[0]}
-            </span>
+      <nav aria-label="Coach" className="mx-auto flex h-20 max-w-[1650px] items-center justify-between gap-6 px-6 lg:px-8">
+        <div className="flex items-center gap-10">
+          <Link to="/" onClick={close} aria-label="MetaGames home" className="block shrink-0">
+            <Logo className="h-12 w-auto lg:h-14" />
           </Link>
-
-          <button
-            type="button"
-            onClick={() => setMobileOpen((value) => !value)}
-            aria-expanded={mobileOpen}
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-            className="flex h-10 w-10 items-center justify-center text-white xl:hidden"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              {mobileOpen ? (
-                <path d="M5 5l14 14M19 5L5 19" />
-              ) : (
-                <path d="M4 7h16M4 12h16M4 17h16" />
-              )}
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {mobileOpen && (
-        <nav
-          aria-label="Coach navigation mobile"
-          className="border-t border-white/10 bg-navy-950/95 px-6 py-3 xl:hidden"
-        >
-          <ul className="flex flex-col">
+          <div className="hidden items-center gap-8 xl:flex">
             {NAV_ITEMS.map((item) => (
-              <MobileNavItem
-                key={item.to}
-                item={item}
-                active={isActive(item.to)}
-                onClick={closeMobile}
-              />
+              <NavLink key={item.to} to={item.to} className={({ isActive }) => `${linkBase} relative flex h-20 items-center ${isActive ? 'text-cyan-glow' : 'text-white/70 hover:text-white'}`}>
+                {({ isActive }) => (
+                  <>
+                    {item.label}
+                    {isActive && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-cyan-glow" aria-hidden="true" />}
+                  </>
+                )}
+              </NavLink>
             ))}
+          </div>
+        </div>
 
-            <li>
-              <Link
-                to={PROFILE_PATH}
-                onClick={closeMobile}
-                className={`flex items-center gap-2 py-3 font-display text-sm font-semibold uppercase tracking-wide ${
-                  isActive(PROFILE_PATH)
-                    ? 'text-cyan-glow'
-                    : 'text-white/70'
-                }`}
-              >
-                <AvatarBadge />
-                Profile
-              </Link>
+        {/* Who is logged in. A link to the profile page. */}
+        <NavLink to="/coach/profile" className={({ isActive }) => `hidden items-center gap-2 rounded-md border px-2 py-1.5 transition-colors xl:flex ${isActive ? 'border-white/30 text-white' : 'border-white/10 text-white/70 hover:border-white/30 hover:text-white'}`}>
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/10 font-display text-xs font-bold text-white/70" aria-hidden="true">
+            {coach?.avatar ? <img src={coach.avatar} alt="" className="h-full w-full object-cover" /> : short.slice(0, 2).toUpperCase()}
+          </span>
+          <span className={linkBase}>{short}</span>
+        </NavLink>
+
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="coach-mobile-menu" aria-label={open ? 'Close menu' : 'Open menu'}
+          className="flex h-11 w-11 items-center justify-center text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glow xl:hidden">
+          <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <path d={open ? 'M5 5l14 14M19 5L5 19' : 'M4 7h16M4 12h16M4 17h16'} />
+          </svg>
+        </button>
+      </nav>
+
+      <div id="coach-mobile-menu" hidden={!open} className="border-t border-white/10 bg-navy-950/95 px-6 pb-4 pt-2 xl:hidden">
+        <ul>
+          {NAV_ITEMS.map((item) => (
+            <li key={item.to} className="border-b border-white/10 last:border-b-0">
+              <NavLink to={item.to} onClick={close} className={({ isActive }) => `${linkBase} block py-4 ${isActive ? 'text-cyan-glow' : 'text-white/70 hover:text-white'}`}>{item.label}</NavLink>
             </li>
-          </ul>
-        </nav>
-      )}
+          ))}
+        </ul>
+      </div>
     </header>
   )
 }
-
 export default CoachTopNav
