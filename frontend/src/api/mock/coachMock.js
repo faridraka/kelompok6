@@ -17,18 +17,32 @@ const wait = (v) => new Promise((r) => setTimeout(() => r(structuredClone(v)), 2
 // These two objects are the editable profiles: saveProfile changes them, and every page reads them through getProfile.
 const COACHES = generateCoaches(9).slice(0, 2).map((c) => (c.id === 2 ? { ...c, lanes: ['jungle', 'gold', 'exp'] } : c))
 
-const me = () => COACHES.find((c) => c.id === getCoachId()) ?? COACHES[0]
+// The mock seed only has coaches 1 and 2, but a real backend login returns a UUID.
+// Without this, a backend coach id matches nothing and every coach page renders empty.
+const coachId = () => {
+  const id = getCoachId()
+  return COACHES.some((c) => c.id === id) ? id : 2
+}
+
+const me = () => COACHES.find((c) => c.id === coachId()) ?? COACHES[0]
 
 // daysFromNow(-4, '19:00') = four days ago at 19:00 Jakarta time, as an ISO string with +07:00.
 const daysFromNow = (days, time = '19:00') => `${new Date(Date.now() + days * 864e5).toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })}T${time}:00+07:00`
 
 const vod = (id) => ({ url: 'https://www.youtube.com/', downloadUrl: `https://example.com/vod-${id}.mp4` })
 // A completed session also carries completedAt (= its scheduled time). Recording only counts when hasVod is true.
+const addHour = (time) => {
+  const [h, m] = time.split(':').map(Number)
+  return `${String((h + 1) % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
 const s = (id, orderId, n, days, time, status, meetingLink = null, hasVod = false) => {
   const at = daysFromNow(days, time)
-  return { id, orderId, sessionNumber: n, totalSessions: 3, scheduledAt: at, status, meetingLink, vod: hasVod ? vod(id) : null, ...(status === 'completed' && { completedAt: at }) }
+  const end = daysFromNow(days, addHour(time))
+  return { id, orderId, sessionNumber: n, totalSessions: 3, scheduledAt: at, scheduledEnd: end, status, meetingLink, vod: hasVod ? vod(id) : null, ...(status === 'completed' && { completedAt: at }) }
 }
-// Three finished sessions of one order: finished('101', orderId, [-40, -33, -26], '19:00', [has recording x3]).
+// A freshly paid order: no dates yet, the coach schedules them (backend creates the Meet link).
+const su = (id, orderId, n) =>
+  ({ id, orderId, sessionNumber: n, totalSessions: 3, scheduledAt: null, scheduledEnd: null, status: 'scheduled', meetingLink: null, vod: null })
 const finished = (key, orderId, days, time = '19:00', vods = [true, true, true]) =>
   days.map((day, i) => s(`s${key}-${i + 1}`, orderId, i + 1, day, time, 'completed', null, vods[i]))
 // Order status: scheduled -> in_progress -> awaiting_rating (review sent) -> completed (player rated, review locked).
@@ -48,6 +62,7 @@ const orders = [
   order('ORD-103', 2, 'karltzy', 'jungle', 'in_progress'),
   order('ORD-104', 2, 'Henshin', 'jungle', 'in_progress'),
   order('ORD-105', 2, 'robbyganteng', 'exp', 'scheduled'),
+  order('ORD-106', 2, 'bagas_', 'gold', 'scheduled'), // freshly paid: waiting for schedule
   // Coach Faros (lanes from data/coaches.js: gold, mid): 1 in sessions, 1 review due, 1 rated.
   order('ORD-201', 1, 'dimzz', 'mid', 'completed', rated(5, 'Trading di lane jadi lebih berani dan terukur, thanks coach.', -12),
     review('Trading di lane sudah bagus dan timing fight tepat. Masih sering overextend saat jungler lawan tidak terlihat.', ['Trading di lane', 'Timing fight'], ['Overextend tanpa vision'], 'Pasang ward di river sebelum push dan pantau posisi jungler lawan.')),
@@ -65,6 +80,9 @@ const sessions = [
   s('s105-1', 'ORD-105', 1, 1, '18:00', 'scheduled'), // the NEXT session on the dashboard
   s('s105-2', 'ORD-105', 2, 5, '19:00', 'scheduled'),
   s('s105-3', 'ORD-105', 3, 12, '19:00', 'scheduled'),
+  su('s106-1', 'ORD-106', 1),
+  su('s106-2', 'ORD-106', 2),
+  su('s106-3', 'ORD-106', 3),
   // Faros
   ...finished('201', 'ORD-201', [-34, -27, -20]),
   ...finished('202', 'ORD-202', [-12, -8, -3], '20:00'), // review due
@@ -104,12 +122,12 @@ const ratingHistory = {
 }
 const wallets = { 1: { available: 450000, pending: 300000 }, 2: { available: 800000, pending: 400000 } }
 
-const myOrders = () => orders.filter((o) => o.coachId === getCoachId())
+const myOrders = () => orders.filter((o) => o.coachId === coachId())
 const mySessions = () => { const ids = myOrders().map((o) => o.id); return sessions.filter((x) => ids.includes(x.orderId)) }
 
 // One source for every rating number: the history above plus the rating on each rated order. Newest first.
 const ratings = () => [
-  ...(ratingHistory[getCoachId()] ?? []),
+  ...(ratingHistory[coachId()] ?? []),
   ...myOrders().filter((o) => o.rating).map((o) => ({ playerNickname: o.player.name, rating: o.rating.rating, comment: o.rating.review, ratedAt: o.rating.ratedAt, orderId: o.id })),
 ].sort((a, b) => b.ratedAt.localeCompare(a.ratedAt))
 
@@ -165,19 +183,30 @@ export const mock = {
   saveProfile,
   getOrders: () => wait(myOrders()),
   getSessions: () => wait(mySessions()),
-  getWallet: () => wait(wallets[getCoachId()]),
+  getWallet: () => wait(wallets[coachId()]),
   getRatings: () => wait(ratings()),
   saveReview,
   saveRecording,
-  updateSession: (id, { scheduledAt, meetingLink }) => {
+  updateSession: (id, { scheduledAt, scheduledEnd, meetingLink }) => {
     const s = mine(id)
     if (s.status === 'completed') throw new Error('Completed sessions cannot be edited')
-    Object.assign(s, { scheduledAt, meetingLink })
+    Object.assign(s, { scheduledAt, scheduledEnd: scheduledEnd ?? s.scheduledEnd ?? null, meetingLink })
+    return wait(s)
+  },
+  // SESS-3 stub: the real backend creates the Google Calendar event + Meet link.
+  // Mock simulates it with a placeholder link so the player join flow stays testable.
+  createSchedule: (id, { scheduledAt, scheduledEnd }) => {
+    const s = mine(id)
+    if (s.status === 'completed') throw new Error('Completed sessions cannot be edited')
+    if (s.scheduledAt) throw new Error('Session already scheduled')
+    if (!scheduledAt || !scheduledEnd) throw new Error('Pick a start time.')
+    Object.assign(s, { scheduledAt, scheduledEnd, meetingLink: `https://meet.google.com/mock-${String(s.id).toLowerCase()}` })
     return wait(s)
   },
   completeSession: (id) => {
     const s = mine(id)
-    if (!s.meetingLink) throw new Error('Add a meeting link first')
+    if (!s.scheduledAt) throw new Error('Schedule the session first')
+    if (!s.scheduledEnd || new Date(s.scheduledEnd).getTime() > Date.now()) throw new Error('Session has not ended yet')
     s.status = 'completed'
     s.completedAt = new Date().toISOString()
     const o = orders.find((x) => x.id === s.orderId)

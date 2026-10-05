@@ -130,7 +130,7 @@ const CoachReviews = () => {
 
           // Only finished orders (all sessions completed). To review first, then awaiting rating, then rated; newest first inside each group.
           const finished = orders.filter((o) => sessionsOf(o).filter((s) => s.status === 'completed').length === o.totalSessions)
-          const rows = finished.filter(shown).sort((a, b) => stage(a) - stage(b) || lastDate(b).localeCompare(lastDate(a)))
+          const rows = finished.filter(shown).sort((a, b) => stage(a) - stage(b) || (lastDate(b) ?? '').localeCompare(lastDate(a) ?? ''))
           const open = rows.find((o) => o.id === openId)
 
           return (

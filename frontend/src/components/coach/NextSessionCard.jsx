@@ -11,12 +11,12 @@ const NextSessionCard = ({ s, o, today, onView }) => (
         <p className="font-display text-xs font-semibold uppercase tracking-[0.26em] text-periwinkle-300">Next session</p>
         {s ? (
           <>
-            <p className="mt-2 font-display text-4xl font-bold uppercase leading-tight text-white">{longDate(s.scheduledAt)} <span className="ml-2">{timeOf(s.scheduledAt)}</span></p>
+            <p className="mt-2 font-display text-4xl font-bold uppercase leading-tight text-white">{longDate(s.scheduledAt)} <span className="ml-2">{timeOf(s.scheduledAt)}{s.scheduledEnd ? ` – ${timeOf(s.scheduledEnd)}` : ''}</span></p>
             <p className="mt-2 text-sm text-white/80">{o.player.name} · Session {s.sessionNumber}/{s.totalSessions} · {laneLabel(o.lane)} · {untilLabel(daysUntil(s.scheduledAt, today))}</p>
           </>
         ) : <p className="mt-2 font-display text-3xl font-bold uppercase text-white">No upcoming sessions</p>}
       </div>
-      {s && <button type="button" onClick={onView} className={btnDark}>{s.meetingLink ? 'Open link' : 'Add link'}</button>}
+      {s && <button type="button" onClick={onView} className={btnDark}>{s.scheduledAt ? 'View' : 'Schedule'}</button>}
     </div>
   </section>
 )

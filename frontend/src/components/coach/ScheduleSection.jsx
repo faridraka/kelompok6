@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { completeCoachSession, updateCoachSession } from '../../api/coach'
 import { laneLabel } from '../../data/coaches'
-import { Pill, fmtDate } from '../player/ui'
+import { hasEnded, shiftInput } from '../../utils/schedule'
+import { useNow } from '../../hooks/useNow'
+import { Pill, fmtRange } from '../player/ui'
 import { goTo } from './sections'
 import { Empty, btn, btnGhost, card, input } from './ui'
 
@@ -9,34 +11,41 @@ const TZ = 'Asia/Jakarta'
 const OFFSET = '+07:00' // Jakarta has no daylight saving, so a fixed offset is safe
 const FILTERS = [['all', 'All'], ['scheduled', 'Upcoming'], ['completed', 'Completed']]
 // "2026-10-03T20:00:00+07:00" -> "2026-10-03T20:00" (the format <input type="datetime-local"> wants)
-const toInput = (iso) => new Date(iso).toLocaleString('sv-SE', { timeZone: TZ }).slice(0, 16).replace(' ', 'T')
-const validLink = (v) => /^https?:\/\/\S+$/i.test(v)
+const toInput = (iso) => (iso ? new Date(iso).toLocaleString('sv-SE', { timeZone: TZ }).slice(0, 16).replace(' ', 'T') : '')
 const rowPad = 'px-5 py-3'
 
 // Inline edit form: it replaces the row. It starts fresh every time it opens.
 const EditForm = ({ s, onDone, onSaved }) => {
   const [at, setAt] = useState(toInput(s.scheduledAt))
-  const [link, setLink] = useState(s.meetingLink ?? '')
+  const [end, setEnd] = useState(toInput(s.scheduledEnd))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
+  // End follows Start automatically, keeping the existing duration (not a fixed +60 min).
+  const onStartChange = (v) => {
+    const prev = at && new Date(`${at}:00${OFFSET}`).getTime()
+    const nextT = v && new Date(`${v}:00${OFFSET}`).getTime()
+    if (Number.isFinite(prev) && Number.isFinite(nextT) && end) setEnd(shiftInput(end, nextT - prev))
+    setAt(v)
+  }
+
   const save = async () => {
-    if (!at) return setError('Pick a date and time.')
-    if (link.trim() && !validLink(link.trim())) return setError('Link must start with http:// or https://')
+    if (!at || !end) return setError('Pick a start and end time.')
+    if (new Date(`${end}:00${OFFSET}`) <= new Date(`${at}:00${OFFSET}`)) return setError('End time must be after start time.')
     setBusy(true); setError('')
-    try { await updateCoachSession(s.id, { scheduledAt: `${at}:00${OFFSET}`, meetingLink: link.trim() || null }); await onSaved(); onDone() }
+    try { await updateCoachSession(s.id, { scheduledAt: `${at}:00${OFFSET}`, scheduledEnd: `${end}:00${OFFSET}` }); await onSaved(); onDone() }
     catch (e) { setError(e.message); setBusy(false) }
   }
 
   return (
     <div className={`${rowPad} space-y-3 bg-white/5`}>
       <p className="text-sm font-semibold text-white">Session {s.sessionNumber}/{s.totalSessions}</p>
-      <div className="grid gap-3 sm:grid-cols-[14rem_1fr]">
-        <label className="block text-xs text-white/60">Date and time
-          <input type="datetime-local" value={at} onChange={(e) => setAt(e.target.value)} className={`${input} mt-1`} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block text-xs text-white/60">Start
+          <input type="datetime-local" value={at} onChange={(e) => onStartChange(e.target.value)} className={`${input} mt-1`} />
         </label>
-        <label className="block text-xs text-white/60">Meeting link
-          <input type="text" inputMode="url" placeholder="https://" value={link} onChange={(e) => setLink(e.target.value)} className={`${input} mt-1`} />
+        <label className="block text-xs text-white/60">End (auto)
+          <input type="datetime-local" value={end} disabled className={`${input} mt-1`} />
         </label>
       </div>
       {error && <p className="text-xs text-gold-400">{error}</p>}
@@ -52,6 +61,7 @@ const ViewRow = ({ s, onEdit, onSaved }) => {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const done = s.status === 'completed'
+  const ended = hasEnded(s, useNow())
 
   const complete = async () => {
     setBusy(true); setError('')
@@ -62,12 +72,9 @@ const ViewRow = ({ s, onEdit, onSaved }) => {
   return (
     <div className={`${rowPad} grid items-center gap-x-4 gap-y-2 sm:grid-cols-2 lg:grid-cols-[6rem_11rem_6rem_7rem_1fr]`}>
       <p className="text-sm font-semibold text-white">Session {s.sessionNumber}/{s.totalSessions}</p>
-      <p className="text-sm text-white/60">{fmtDate(s.scheduledAt, TZ)}</p>
+      <p className="text-sm text-white/60">{s.scheduledAt ? fmtRange(s.scheduledAt, s.scheduledEnd, TZ) : <span className="text-gold-400">Not scheduled yet</span>}</p>
       <p className={`text-sm font-semibold ${done ? 'text-cyan-glow' : 'text-white/60'}`}>{done ? 'Completed' : 'Upcoming'}</p>
-      <p className="text-sm">
-        {s.meetingLink ? <a href={s.meetingLink} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white">Open link</a>
-          : done ? <span className="text-white/40">-</span> : <span className="text-gold-400">No link yet</span>}
-      </p>
+      <p className="text-sm text-white/60">{s.meetingLink ? <a href={s.meetingLink} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white">Meet link</a> : <span className="text-white/40">-</span>}</p>
       <div className="flex flex-col gap-1 sm:col-span-2 lg:col-span-1 lg:items-end">
         {done ? (
           // Completed = locked. Only the recording status is shown.
@@ -77,9 +84,9 @@ const ViewRow = ({ s, onEdit, onSaved }) => {
           <>
             <div className="flex gap-2">
               <button type="button" onClick={() => onEdit(s.id)} disabled={busy} className={btnGhost}>Edit</button>
-              <button type="button" onClick={complete} disabled={busy || !s.meetingLink} className={btn}>Mark as completed</button>
+              <button type="button" onClick={complete} disabled={busy || !ended} className={btn}>Mark as completed</button>
             </div>
-            {!s.meetingLink && <p className="text-xs text-white/50">Add a meeting link first</p>}
+            {!ended && <p className="text-xs text-white/50">Available after the session ends</p>}
           </>
         )}
         {error && <p className="text-xs text-gold-400">{error}</p>}
@@ -88,10 +95,10 @@ const ViewRow = ({ s, onEdit, onSaved }) => {
   )
 }
 
-// Section "Schedule". `editId` is shared with the dashboard, so "Add link" up there can open a row's form.
+// Section "Schedule". `editId` is shared with the dashboard, so the button up there can open a row's form.
 const ScheduleSection = ({ orders, sessions, editId, onEdit, onSaved }) => {
   const [filter, setFilter] = useState('all')
-  const byDate = (a, b) => a.scheduledAt.localeCompare(b.scheduledAt)
+  const byDate = (a, b) => (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? '')
   const shown = (s) => filter === 'all' || s.status === filter || s.id === editId // the row being edited never disappears
   const nextDate = (all) => all.filter((s) => s.status === 'scheduled').sort(byDate)[0]?.scheduledAt ?? '~' // '~' sorts last
 

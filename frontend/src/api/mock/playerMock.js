@@ -6,7 +6,8 @@ import { getStoredUser } from '../../utils/session'
 const wait = (v) => new Promise((r) => setTimeout(() => r(structuredClone(v)), 250))
 const coach = (id, name) => ({ id, name, avatar: null })
 const vod = (n) => ({ url: 'https://www.youtube.com/', downloadUrl: `https://example.com/vod-${n}.mp4` })
-const s = (id, orderId, n, at, status, c, hasVod) => ({ id, orderId, coach: c, sessionNumber: n, totalSessions: 3, scheduledAt: at, meetingLink: status === 'scheduled' ? 'https://meet.google.com/abc-defg-hij' : null, status, vod: hasVod ? vod(id) : null })
+const endOf = (at) => (at ? new Date(new Date(at).getTime() + 3600e3).toISOString() : null)
+const s = (id, orderId, n, at, status, c, hasVod) => ({ id, orderId, coach: c, sessionNumber: n, totalSessions: 3, scheduledAt: at, scheduledEnd: endOf(at), meetingLink: status === 'scheduled' ? 'https://meet.google.com/abc-defg-hij' : null, status, vod: hasVod ? vod(id) : null })
 
 const faros = coach(1, 'Coach Faros'), seemon = coach(2, 'Coach Seemon')
 let demoOrders = [
@@ -35,6 +36,31 @@ export const mock = {
   getSessions: () => wait(allSessions()),
   getOrders: () => wait(allOrders()),
   getOrder: (id) => wait({ ...allOrders().find((o) => o.id === id), sessions: allSessions().filter((x) => x.orderId === id) }),
+  completeSession: (id) => {
+    const notEnded = (x) => !x.scheduledEnd || new Date(x.scheduledEnd).getTime() > Date.now()
+    const demo = demoSessions.find((x) => x.id === id)
+    if (demo) {
+      if (demo.status === 'completed') throw new Error('Session already completed')
+      if (notEnded(demo)) throw new Error('Session has not ended yet')
+      demo.status = 'completed'
+      demo.completedAt = new Date().toISOString()
+      return wait(demo)
+    }
+    const KEY = 'metagames_mock_db'
+    const db = JSON.parse(localStorage.getItem(KEY) || '{"orders":{},"payments":{}}')
+    for (const o of Object.values(db.orders)) {
+      const ses = o.sessions.find((x) => x.id === id)
+      if (ses) {
+        if (ses.status === 'completed') throw new Error('Session already completed')
+        if (notEnded(ses)) throw new Error('Session has not ended yet')
+        ses.status = 'completed'
+        ses.completedAt = new Date().toISOString()
+        localStorage.setItem(KEY, JSON.stringify(db))
+        return wait({ ...ses, orderId: o.id, coach: o.coach, vod: null })
+      }
+    }
+    throw new Error('Session not found')
+  },
   getMaterials: () => wait(materials),
   getMe: () => { const u = getStoredUser(); return wait({ name: u?.name ?? 'Player', email: u?.email ?? '', avatarUrl: null, bio: '', timezone: 'Asia/Jakarta' }) },
   getConfig: () => wait({ discordInviteUrl: 'https://discord.gg/' }),

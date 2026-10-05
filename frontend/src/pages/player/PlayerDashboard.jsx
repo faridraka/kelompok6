@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { getConfig, getMe, getOrders, getSessions } from '../../api/player'
 import { laneLabel } from '../../data/coaches'
 import { useAsync } from '../../hooks/useAsync'
-import { Async, Empty, PageHeader, btn, btnGhost, fmtDate } from '../../components/player/ui'
+import { Async, Empty, PageHeader, btn, btnGhost, fmtRange } from '../../components/player/ui'
 
 const load = async () => {
   const [orders, sessions, me, config] = await Promise.all([getOrders(), getSessions(), getMe(), getConfig()])
@@ -22,7 +22,7 @@ const PlayerDashboard = () => {
       <PageHeader title="Dashboard" />
       <Async state={state}>
         {({ orders, sessions, me, config }) => {
-          const upcoming = sessions.filter((s) => s.status === 'scheduled').sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+          const upcoming = sessions.filter((s) => s.status === 'scheduled').sort((a, b) => (!a.scheduledAt - !b.scheduledAt) || (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''))
           const next = upcoming[0]
           const toRate = orders.filter((o) => o.status === 'awaiting_rating')
           const count = (st) => orders.filter((o) => o.status === st).length
@@ -41,9 +41,9 @@ const PlayerDashboard = () => {
                   <div className="flex flex-col gap-4 border border-white/10 bg-navy-900/70 backdrop-blur-sm p-6 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="font-semibold text-white">{next.coach.name} · Session {next.sessionNumber}/{next.totalSessions}</p>
-                      <p className="mt-1 text-sm text-white/60">{fmtDate(next.scheduledAt, me.timezone)}</p>
+                      {next.scheduledAt && <p className="mt-1 text-sm text-white/60">{fmtRange(next.scheduledAt, next.scheduledEnd, me.timezone)}</p>}
                     </div>
-                    {next.meetingLink ? <a href={next.meetingLink} target="_blank" rel="noopener noreferrer" className={btn}>Join meeting</a> : <span className="text-sm text-gold-400">Waiting for coach link</span>}
+                    {next.meetingLink ? <a href={next.meetingLink} target="_blank" rel="noopener noreferrer" className={btn}>Join meeting</a> : <span className="text-sm text-gold-400">Waiting for schedule</span>}
                   </div>
                 ) : <Empty>No upcoming sessions.</Empty>}
               </section>

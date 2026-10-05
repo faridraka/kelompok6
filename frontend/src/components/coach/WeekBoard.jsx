@@ -1,10 +1,10 @@
 import { laneLabel } from '../../data/coaches'
 import { axisHours, dayName, dayNumber, hourOf, statusOf, timeOf } from '../../utils/schedule'
 
-// Block colours: royal = link added, gold outline = needs a link, dim = completed. The selected block gets a white border.
+// Block colours: royal = scheduled, gold outline = waiting for schedule, dim = completed. The selected block gets a white border.
 const LOOK = (s) =>
   s.status === 'completed' ? ['border-white/10', 'bg-navy-900/50 text-white/60']
-    : s.meetingLink ? ['border-royal-600', 'bg-royal-600 text-white']
+    : s.scheduledAt ? ['border-royal-600', 'bg-royal-600 text-white']
       : ['border-gold-400/60', 'bg-navy-900/70 text-white']
 
 // One session block. Clicking it selects the session; the form lives in the detail panel.

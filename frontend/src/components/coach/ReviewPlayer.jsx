@@ -56,7 +56,7 @@ const ReviewPlayer = ({ orders, sessions, openId, onOpen, onSaved }) => {
   const done = (o) => sessions.filter((s) => s.orderId === o.id).every((s) => s.status === 'completed')
   const last = (o) => sessions.filter((s) => s.orderId === o.id).map((s) => s.scheduledAt).sort().pop()
   // Reviews to write first, then the rest, newest first.
-  const list = orders.filter(done).sort((a, b) => (!b.performanceReview - !a.performanceReview) || last(b).localeCompare(last(a)))
+  const list = orders.filter(done).sort((a, b) => (!b.performanceReview - !a.performanceReview) || (last(b) ?? '').localeCompare(last(a) ?? ''))
 
   return (
     <section id="reviews" className="scroll-mt-24">

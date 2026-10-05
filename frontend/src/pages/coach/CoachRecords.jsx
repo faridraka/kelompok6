@@ -47,7 +47,7 @@ const CoachRecords = () => {
       {/* Keep the grid on screen while it reloads after a save. */}
       <Async state={{ ...state, loading: state.loading && !state.data }}>
         {({ orders, sessions }) => {
-          const cards = sessions.filter((s) => s.status === 'completed').filter(shown).sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt)) // newest first
+          const cards = sessions.filter((s) => s.status === 'completed').filter(shown).sort((a, b) => (b.scheduledAt ?? '').localeCompare(a.scheduledAt ?? '')) // newest first
           return !cards.length ? <Empty>{EMPTY[filter]}</Empty> : (
             <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-3">
               {cards.map((s) => (

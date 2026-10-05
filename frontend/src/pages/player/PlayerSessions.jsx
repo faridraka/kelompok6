@@ -1,12 +1,51 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { getMe, getOrders, getSessions } from '../../api/player'
+import { completeSession, getMe, getOrders, getSessions } from '../../api/player'
 import { laneLabel } from '../../data/coaches'
 import { useAsync } from '../../hooks/useAsync'
-import { Async, Empty, PageHeader, Pill, btn, fmtDate } from '../../components/player/ui'
+import { useNow } from '../../hooks/useNow'
+import { hasEnded } from '../../utils/schedule'
+import { Async, Empty, PageHeader, Pill, btn, fmtRange } from '../../components/player/ui'
 
 const FILTERS = [['all', 'All'], ['scheduled', 'Upcoming'], ['completed', 'Completed']]
 const load = async () => { const [orders, sessions, me] = await Promise.all([getOrders(), getSessions(), getMe()]); return { orders, sessions, me } }
+
+const SessionRow = ({ s, timezone, onDone }) => {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const ended = hasEnded(s, useNow())
+
+  const markComplete = async () => {
+    setBusy(true); setError('')
+    try { await completeSession(s.id); await onDone() }
+    catch (e) { setError(e.message); setBusy(false) }
+  }
+
+  return (
+    <div className="flex flex-col gap-3 border-b border-white/10 px-6 py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="text-sm font-semibold text-white">Session {s.sessionNumber}/{s.totalSessions}</p>
+        {s.status === 'completed' ? (
+          s.scheduledAt && <p className="text-sm text-white/60">{fmtRange(s.scheduledAt, s.scheduledEnd, timezone)}</p>
+        ) : s.meetingLink ? (
+          s.scheduledAt && <p className="text-sm text-white/60">{fmtRange(s.scheduledAt, s.scheduledEnd, timezone)}</p>
+        ) : null}
+      </div>
+      {s.status === 'completed' ? <span className="text-sm font-semibold text-cyan-glow">Completed</span>
+        : s.meetingLink ? (
+          <div className="flex flex-col items-start gap-2 sm:items-end">
+            <div className="flex gap-2">
+              <a href={s.meetingLink} target="_blank" rel="noopener noreferrer" className={btn}>Join meeting</a>
+              <button type="button" onClick={markComplete} disabled={busy || !ended} className={btn}>Mark complete</button>
+            </div>
+            {!ended && <p className="text-xs text-white/50">Available after the session ends</p>}
+            {error && <p className="text-xs text-gold-400">{error}</p>}
+          </div>
+        )
+        : <span className="text-sm text-gold-400">Waiting for schedule</span>}
+    </div>
+  )
+}
 
 const PlayerSessions = () => {
   const state = useAsync(load)
@@ -28,15 +67,7 @@ const PlayerSessions = () => {
                     {o.status === 'awaiting_rating' && <Link to={`/player/orders/${o.id}`} className={btn}>Rate your coach</Link>}
                   </div>
                   {list.map((s) => (
-                    <div key={s.id} className="flex flex-col gap-3 border-b border-white/10 px-6 py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-white">Session {s.sessionNumber}/{s.totalSessions}</p>
-                        <p className="text-sm text-white/60">{fmtDate(s.scheduledAt, me.timezone)}</p>
-                      </div>
-                      {s.status === 'completed' ? <span className="text-sm font-semibold text-cyan-glow">Completed</span>
-                        : s.meetingLink ? <a href={s.meetingLink} target="_blank" rel="noopener noreferrer" className={btn}>Join meeting</a>
-                        : <span className="text-sm text-gold-400">Waiting for link</span>}
-                    </div>
+                    <SessionRow key={s.id} s={s} timezone={me.timezone} onDone={state.reload} />
                   ))}
                 </section>
               ))}

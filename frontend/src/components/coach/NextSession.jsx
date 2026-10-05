@@ -24,7 +24,9 @@ const NextSession = ({ next, order }) => {
         <div className="grid gap-6 md:grid-cols-[auto_1fr] md:items-center">
           <div>
             <p className={label}>Next session</p>
-            {started
+            {!next.scheduledAt
+              ? <p className="mt-3 flex h-[62px] items-center font-display text-2xl font-bold uppercase leading-none text-white">Not scheduled yet</p>
+              : started
               ? <p className="mt-3 flex h-[62px] items-center font-display text-4xl font-bold uppercase leading-none text-white">Started</p>
               : <div className="mt-3 flex gap-2"><Box value={days} unit="Days" /><Box value={hours} unit="Hrs" /><Box value={minutes} unit="Min" /></div>}
           </div>
@@ -33,11 +35,13 @@ const NextSession = ({ next, order }) => {
               <p className="truncate font-display text-2xl font-bold uppercase leading-tight text-white">{order.player.name}</p>
               <p className="mt-1 text-sm text-white/85">Session {next.sessionNumber}/{next.totalSessions} · {laneLabel(order.lane)}</p>
               <p className="text-sm text-white/85">
-                {at(next.scheduledAt, { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', '')} · {at(next.scheduledAt, { hour: '2-digit', minute: '2-digit' })}
+                {next.scheduledAt ? (
+                  <>{at(next.scheduledAt, { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', '')} · {at(next.scheduledAt, { hour: '2-digit', minute: '2-digit' })}{next.scheduledEnd ? ` – ${at(next.scheduledEnd, { hour: '2-digit', minute: '2-digit' })}` : ''}</>
+                ) : 'Not scheduled yet'}
               </p>
-              <p className={`mt-1 text-sm font-semibold ${next.meetingLink ? 'text-white/85' : 'text-gold-400'}`}>{next.meetingLink ? 'Link added' : 'No link yet'}</p>
+              <p className={`mt-1 text-sm font-semibold ${!next.scheduledAt ? 'text-gold-400' : 'text-white/85'}`}>{!next.scheduledAt ? 'Waiting for schedule' : 'Scheduled'}</p>
             </div>
-            <Link to={`/coach/schedule?session=${next.id}`} className={`${btnDark} shrink-0`}>{next.meetingLink ? 'Open link' : 'Add link'}</Link>
+            <Link to={`/coach/schedule?session=${next.id}`} className={`${btnDark} shrink-0`}>{next.scheduledAt ? 'View' : 'Schedule'}</Link>
           </div>
         </div>
       ) : (

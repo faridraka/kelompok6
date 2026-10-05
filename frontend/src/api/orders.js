@@ -7,7 +7,7 @@
  * Order   { id, status, coach:{id,name,avatar,discordUsername}, lane, packageType, sessionCount,
  *           subtotal, tax, discount, totalPrice, currency:'IDR', createdAt,
  *           sessions: Session[] }
- * Session { id, sessionNumber, totalSessions, scheduledAt (ISO), status, meetingLink|null }
+ * Session { id, sessionNumber, totalSessions, scheduledAt (ISO|null), scheduledEnd (ISO|null), status, meetingLink|null }
  * Payment { id, orderId, method:'qris', status:'pending'|'paid', amount, qrPayload, expiresAt }
  *
  * If the backend differs, adapt HERE (map the response) and the pages stay untouched.

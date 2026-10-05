@@ -10,10 +10,7 @@ const uid = (p) => `${p}_${Math.random().toString(36).slice(2, 10)}`
 
 const autoSchedule = () =>
   [0, 1, 2].map((i) => {
-    const d = new Date()
-    d.setDate(d.getDate() + 3 + i * 7)
-    d.setHours(19, 0, 0, 0)
-    return { id: uid('ses'), sessionNumber: i + 1, totalSessions: 3, scheduledAt: d.toISOString(), status: 'scheduled', meetingLink: null }
+    return { id: uid('ses'), sessionNumber: i + 1, totalSessions: 3, scheduledAt: null, scheduledEnd: null, status: 'scheduled', meetingLink: null }
   })
 
 export const createOrder = async ({ coachId, lane }) => {

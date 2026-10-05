@@ -22,13 +22,13 @@ const CoachDashboard = () => {
       {({ coach, orders, sessions, ratings }) => {
         const sessionsOf = (id) => sessions.filter((s) => s.orderId === id)
         const due = orders.filter((o) => stageOf(o, sessionsOf(o.id)) === 'due').length
-        const upcoming = sessions.filter((s) => s.status === 'scheduled').sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+        const upcoming = sessions.filter((s) => s.status === 'scheduled').sort((a, b) => (!a.scheduledAt - !b.scheduledAt) || (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''))
         const next = upcoming[0]
         const stats = ratingStats(ratings) // one source for the hero and the Reputation panel
 
-        // Hero status sentence, e.g. "2 links missing · 1 review due".
+        // Hero status sentence, e.g. "2 schedules missing · 1 review due".
         const parts = [
-          [upcoming.filter((s) => !s.meetingLink).length, 'link', 'missing'],
+          [upcoming.filter((s) => !s.scheduledAt).length, 'schedule', 'missing'],
           [sessions.filter((s) => s.status === 'completed' && !s.vod).length, 'recording', 'missing'],
           [due, 'review', 'due'],
         ].filter(([n]) => n > 0).map(([n, word, tail]) => `${plural(n, word)} ${tail}`)

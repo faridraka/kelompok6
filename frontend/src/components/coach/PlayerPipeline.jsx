@@ -9,7 +9,7 @@ import iconRoam from '../../assets/roles/role-roam.png'
 
 const ICON = { gold: iconGold, exp: iconExp, mid: iconMid, jungle: iconJungle, roam: iconRoam }
 const COLUMNS = [['sessions', 'In sessions'], ['due', 'Review due'], ['awaiting', 'Awaiting rating'], ['rated', 'Rated']]
-const byDate = (a, b) => a.scheduledAt.localeCompare(b.scheduledAt)
+const byDate = (a, b) => (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? '')
 
 // What a card says and where it goes. Gold = needs action, cyan = rated.
 const cardInfo = (stage, o, list) => {
@@ -19,10 +19,10 @@ const cardInfo = (stage, o, list) => {
   if (stage === 'awaiting') return { meta: 'Review sent', to: reviews }
   if (stage === 'rated') return { meta: `Player rated you ${o.rating.rating}/5`, cyan: true, to: reviews }
   const first = (test) => list.filter(test).sort(byDate)[0]
-  const noLink = first((s) => s.status === 'scheduled' && !s.meetingLink)
+  const noSchedule = first((s) => s.status === 'scheduled' && !s.scheduledAt)
   const noVod = first((s) => s.status === 'completed' && !s.vod)
   const meta = `${list.filter((s) => s.status === 'completed').length}/${o.totalSessions} sessions`
-  if (noLink) return { meta, flag: 'Link missing', gold: true, to: `/coach/schedule?session=${noLink.id}` }
+  if (noSchedule) return { meta, flag: 'Needs schedule', gold: true, to: `/coach/schedule?session=${noSchedule.id}` }
   if (noVod) return { meta, flag: 'Recording missing', gold: true, to: `/coach/records?session=${noVod.id}` }
   return { meta, flag: 'On track', to: `/coach/schedule?session=${first((s) => s.status === 'scheduled').id}` }
 }
