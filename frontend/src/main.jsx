@@ -28,12 +28,13 @@ import CoachRecords from './pages/coach/CoachRecords.jsx'
 import CoachReviews from './pages/coach/CoachReviews.jsx'
 import CoachProfile from './pages/coach/CoachProfile.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
-import { protectedLoader, guestLoader, coachOnlyLoader } from './routes/authMiddleware'
+import { protectedLoader, guestLoader, coachOnlyLoader, playerOnlyLoader, coachRedirectLoader } from './routes/authMiddleware'
 
 const router = createBrowserRouter([
   {
     path: '/',
     Component: App,
+    loader: coachRedirectLoader,
     children: [
       { index: true, Component: LandingPage },
       { path: 'login', Component: LoginPage, loader: guestLoader },
@@ -62,7 +63,7 @@ const router = createBrowserRouter([
   {
     path: '/player',
     Component: PlayerLayout,
-    loader: protectedLoader,
+    loader: playerOnlyLoader,
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'dashboard', Component: PlayerDashboard },

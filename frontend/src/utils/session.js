@@ -58,3 +58,8 @@ export const getUserRole = () => {
   const user = getStoredUser()
   return user?.role || null
 }
+
+export const getCoachId = () => {
+  const user = getStoredUser()
+  return user?.id ?? 1 // fallback to coach 1 for mock
+}
