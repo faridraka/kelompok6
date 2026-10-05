@@ -11,7 +11,7 @@ const PlayerVods = () => {
       <PageHeader title="Coaching VODs" sub="Recordings of your completed sessions." />
       <Async state={state}>
         {({ sessions, me }) => {
-          const vods = sessions.filter((s) => s.vod).sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt))
+          const vods = sessions.filter((s) => s.vod).sort((a, b) => (b.scheduledAt ?? '').localeCompare(a.scheduledAt ?? ''))
           if (!vods.length) return <Empty>No recordings yet. They appear after your coach uploads them.</Empty>
           return (
             <div className="border border-white/10 bg-navy-900/70 backdrop-blur-sm">
