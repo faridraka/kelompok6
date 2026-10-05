@@ -7,10 +7,10 @@ import { getStoredUser } from '../../utils/session'
 
 const NAV_ITEMS = [
   { to: '/coach/dashboard', label: 'Dashboard' },
-  { to: '/coach/schedule', label: 'Schedule' },
-  { to: '/coach/records', label: 'Upload Record' },
-  { to: '/coach/reviews', label: 'Review Player' },
-  { to: '/coach/profile', label: 'Profile' },
+  { to: '/coach/services', label: 'My Services' },
+  { to: '/coach/sessions', label: 'Sessions' },
+  { to: '/coach/reviews', label: 'Performance Reviews' },
+  { to: '/coach/wallet', label: 'Wallet' },
 ]
 
 const PROFILE_PATH = '/coach/profile'
@@ -135,17 +135,14 @@ const CoachTopNav = () => {
         >
           <ul className="flex flex-col">
             {NAV_ITEMS.map((item) => (
-              <NavLink key={item.to} to={item.to} className={({ isActive }) => `${linkBase} relative flex h-20 items-center ${isActive ? 'text-cyan-glow' : 'text-white/70 hover:text-white'}`}>
-                {({ isActive }) => (
-                  <>
-                    {item.label}
-                    {isActive && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-cyan-glow" aria-hidden="true" />}
-                  </>
-                )}
-              </NavLink>
+              <MobileNavItem
+                key={item.to}
+                item={item}
+                active={isActive(item.to)}
+                onClick={closeMobile}
+              />
             ))}
-          </div>
-        </div>
+
             <li>
               <Link
                 to={PROFILE_PATH}
@@ -160,10 +157,11 @@ const CoachTopNav = () => {
                 Profile
               </Link>
             </li>
-          ))}
-        </ul>
-      </div>
+          </ul>
+        </nav>
+      )}
     </header>
   )
 }
+
 export default CoachTopNav
