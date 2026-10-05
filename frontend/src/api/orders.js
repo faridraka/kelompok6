@@ -4,7 +4,7 @@
  *
  * Shapes the UI expects (camelCase JSON, resource returned directly, no envelope):
  *
- * Order   { id, status, coach:{id,name,avatar}, lane, packageType, sessionCount,
+ * Order   { id, status, coach:{id,name,avatar,discordUsername}, lane, packageType, sessionCount,
  *           subtotal, tax, discount, totalPrice, currency:'IDR', createdAt,
  *           sessions: Session[] }
  * Session { id, sessionNumber, totalSessions, scheduledAt (ISO), status, meetingLink|null }

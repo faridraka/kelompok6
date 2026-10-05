@@ -23,7 +23,7 @@ export const createOrder = async ({ coachId, lane }) => {
   const t = calcTotals(coach.price)
   const order = {
     id: uid('ord'), status: 'pending_payment',
-    coach: { id: coach.id, name: coach.name, avatar: null },
+    coach: { id: coach.id, name: coach.name, avatar: null, discordUsername: coach.discordUsername },
     lane, packageType: '3_session', sessionCount: 3,
     subtotal: t.subtotal, tax: t.tax, discount: t.discount, totalPrice: t.total, currency: 'IDR',
     createdAt: new Date().toISOString(), sessions: autoSchedule(),
