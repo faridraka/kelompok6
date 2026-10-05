@@ -12,6 +12,7 @@ const ProfileSummary = ({ coach, stats }) => {
         : <div aria-hidden="true" className="flex h-32 w-32 items-center justify-center rounded-full bg-white/10 font-display text-4xl font-bold uppercase text-white/70">{initials}</div>}
       <h2 className="mt-4 font-display text-3xl font-bold uppercase leading-tight text-white">{coach.name}</h2>
       <p className="mt-1 text-sm text-white/70">{coach.academyLabel}</p>
+      {coach.discordUsername && <p className="mt-1 text-sm text-white/50">Discord: <span className="text-white/80">{coach.discordUsername}</span></p>}
       <p className="mt-3 font-display text-lg font-bold text-cyan-glow">{stats.n ? `Rated ${stats.avg.toFixed(1)}/5` : 'No ratings yet'}</p>
       <ul className="mt-5 flex flex-wrap justify-center gap-4 border-t border-white/10 pt-5">
         {coach.lanes.map((lane) => (
