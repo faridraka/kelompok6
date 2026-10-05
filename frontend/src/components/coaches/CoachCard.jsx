@@ -78,8 +78,7 @@ const CoachCard = ({ coach }) => {
         <div className="leading-tight">
           <p className="text-xs text-white/60">3-session package</p>
           <p className="font-display text-lg font-bold text-white">
-            {formatIDR(coach.price)}{' '}
-            <span className="text-sm font-normal text-white/50 line-through">{formatIDR(coach.originalPrice)}</span>
+            {formatIDR(coach.price)}
           </p>
         </div>
 
