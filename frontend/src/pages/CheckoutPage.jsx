@@ -31,34 +31,6 @@ const Field = ({ label, name, form, errors, onChange, full, children, ...rest })
   </div>
 )
 
-const DiscordContact = ({ username }) => {
-  const [copied, setCopied] = useState(false)
-  const copy = async () => {
-    await navigator.clipboard.writeText(username)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1800)
-  }
-  return (
-    <section className="border border-white/10 bg-navy-900 p-6">
-      <h2 className="font-display text-xl font-bold uppercase text-white">Coach contact</h2>
-      <p className="mt-2 text-sm text-white/60">
-        Sessions can be rescheduled by you or your coach, so save their Discord username to stay in touch.
-      </p>
-      <div className="mt-4 flex items-center justify-between gap-4 border border-white/10 bg-navy-950 px-4 py-3">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50">Discord username</p>
-          <p className="text-white">{username || 'Not provided yet'}</p>
-        </div>
-        {username && (
-          <button type="button" onClick={copy} className="font-display text-xs font-semibold uppercase tracking-wide text-periwinkle-300 hover:text-white">
-            {copied ? 'Copied!' : 'Copy'}
-          </button>
-        )}
-      </div>
-    </section>
-  )
-}
-
 const CheckoutPage = () => {
   const navigate = useNavigate()
   const { status, coach, lane, coachId, session } = useBooking()
@@ -120,8 +92,6 @@ const CheckoutPage = () => {
             </select>
           </Field>
         </Card>
-
-        <DiscordContact username={coach.discordUsername} />
 
         <section className="border border-white/10 bg-navy-900 p-6">
           <h2 className="font-display text-xl font-bold uppercase text-white">Payment method</h2>

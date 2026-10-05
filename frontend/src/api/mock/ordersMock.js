@@ -10,10 +10,7 @@ const uid = (p) => `${p}_${Math.random().toString(36).slice(2, 10)}`
 
 const autoSchedule = () =>
   [0, 1, 2].map((i) => {
-    const d = new Date()
-    d.setDate(d.getDate() + 3 + i * 7)
-    d.setHours(19, 0, 0, 0)
-    return { id: uid('ses'), sessionNumber: i + 1, totalSessions: 3, scheduledAt: d.toISOString(), status: 'scheduled', meetingLink: null }
+    return { id: uid('ses'), sessionNumber: i + 1, totalSessions: 3, scheduledAt: null, scheduledEnd: null, status: 'scheduled', meetingLink: null }
   })
 
 export const createOrder = async ({ coachId, lane }) => {
@@ -23,7 +20,7 @@ export const createOrder = async ({ coachId, lane }) => {
   const t = calcTotals(coach.price)
   const order = {
     id: uid('ord'), status: 'pending_payment',
-    coach: { id: coach.id, name: coach.name, avatar: null },
+    coach: { id: coach.id, name: coach.name, avatar: null, discordUsername: coach.discordUsername },
     lane, packageType: '3_session', sessionCount: 3,
     subtotal: t.subtotal, tax: t.tax, discount: t.discount, totalPrice: t.total, currency: 'IDR',
     createdAt: new Date().toISOString(), sessions: autoSchedule(),

@@ -29,6 +29,13 @@ export const coachOnlyLoader = () => {
   return null
 }
 
+export const coachRedirectLoader = () => {
+  if (isAuthenticated() && getUserRole() === 'coach') {
+    throw redirect("/coach/dashboard")
+  }
+  return null
+}
+
 // Loader for player-only routes (optional, if you want strict separation)
 export const playerOnlyLoader = () => {
   if (!isAuthenticated()) {
