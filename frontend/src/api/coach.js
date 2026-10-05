@@ -1,5 +1,5 @@
 // One function per endpoint, same pattern as api/player.js. Going live = editing this file only.
-import { USE_MOCK, request } from './client'
+import { USE_MOCK, request, uploadRequest } from './client'
 import { mock } from './mock/coachMock'
 
 export const getCoachProfile = () => (USE_MOCK ? mock.getProfile() : request('/users/me'))   // USER-1
@@ -13,3 +13,10 @@ export const createCoachSchedule = (id, body) => (USE_MOCK ? mock.createSchedule
 export const completeCoachSession = (id) => (USE_MOCK ? mock.completeSession(id) : request(`/sessions/${id}/complete`, { method: 'PATCH' })) // SESS-5
 export const saveCoachReview = (id, body) => (USE_MOCK ? mock.saveReview(id, body) : request(`/orders/${id}/performance-review`, { method: 'POST', body })) // REV-5
 export const saveCoachRecording = (id, body) => (USE_MOCK ? mock.saveRecording(id, body) : request(`/sessions/${id}/recording`, { method: 'POST', body })) // SESS-6. body: { url, material } where material = { type, title, tagline, description, thumbnailUrl, link } | null (remove)
+// VOD-1  POST /uploads/vod (multipart file) -> { url }. Backend stores the file in object storage (R2).
+export const uploadCoachVod = (file) => {
+  if (USE_MOCK) return mock.uploadVod(file)
+  const form = new FormData()
+  form.append('file', file)
+  return uploadRequest('/uploads/vod', form)
+}

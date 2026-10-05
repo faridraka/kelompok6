@@ -40,7 +40,7 @@ export const frameFromFile = (file) => new Promise((resolve) => {
 })
 
 const YOUTUBE = /(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/))([\w-]{11})/
-const VIDEO_FILE = /\.(mp4|webm|mov|m4v|ogv)$/i
+const VIDEO_FILE = /\.(mp4|webm|mov|m4v|ogv|mkv)$/i
 
 // What to draw inside the thumbnail for a session's recording: { type: 'image' | 'video', src } or null.
 export const thumbSource = (sessionId, vod) => {

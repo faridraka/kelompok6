@@ -39,7 +39,7 @@ const CoachRecords = () => {
           <div className="absolute inset-x-0 bottom-0 h-[130px] bg-gradient-to-t from-navy-950 to-transparent" />
         </div>
         <div className="mx-auto w-full max-w-[1650px] px-6 pb-6 pt-8 lg:px-8">
-          <PageHeader title="Upload Record" sub="Add the VOD link for each completed session." />
+          <PageHeader title="Upload Record" sub="Upload the VOD file for each completed session." />
           <div className="flex flex-wrap gap-2">{FILTERS.map(([k, l]) => <Pill key={k} active={filter === k} onClick={() => setFilter(k)}>{l}</Pill>)}</div>
         </div>
       </section>

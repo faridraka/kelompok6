@@ -149,6 +149,15 @@ const saveReview = (orderId, { notes, strengths, weaknesses, recommendation }) =
   return wait(o)
 }
 
+// VOD-1 stub: simulates object storage (R2). Validates video files and returns a fake public URL.
+const uploadVod = (file) => {
+  if (!file) throw new Error('Pick a video file.')
+  const ok = file.type.startsWith('video/') || /\.(mp4|mkv|webm|mov|m4v|avi|ogv)$/i.test(file.name)
+  if (!ok) throw new Error('Only video files are allowed (mp4, mkv, webm, mov).')
+  const key = `vods/${crypto.randomUUID()}/${file.name.replace(/\s+/g, '_')}`
+  return wait({ url: `https://r2.mock/${key}`, fileName: file.name, size: file.size })
+}
+
 // Saves the VOD on the session itself, in the shape PlayerVods reads: { url, downloadUrl }.
 // material: an object = add or replace the session's material, null = remove it, undefined = leave it alone.
 // An existing material keeps its id and createdAt when it is edited. Nothing is uploaded: only links are kept.
@@ -187,6 +196,7 @@ export const mock = {
   getRatings: () => wait(ratings()),
   saveReview,
   saveRecording,
+  uploadVod,
   updateSession: (id, { scheduledAt, scheduledEnd, meetingLink }) => {
     const s = mine(id)
     if (s.status === 'completed') throw new Error('Completed sessions cannot be edited')

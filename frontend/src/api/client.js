@@ -4,6 +4,19 @@ import { clearSession, getAccessToken, getSession, setSession } from '../utils/s
 export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
+// Multipart upload (FormData). The JSON `request` above can't send files.
+export const uploadRequest = async (path, form) => {
+  const token = getAccessToken()
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: form,
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.message || 'Upload failed')
+  return data
+}
+
 let isRefreshing = false
 let refreshPromise = null
 

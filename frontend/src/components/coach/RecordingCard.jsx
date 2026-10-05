@@ -1,46 +1,70 @@
 import { useState } from 'react'
 import { FiPlay, FiPlus } from 'react-icons/fi'
-import { saveCoachRecording } from '../../api/coach'
+import { saveCoachRecording, uploadCoachVod } from '../../api/coach'
 import { draftOf, readDraft } from '../../utils/material'
-import { thumbSource } from '../../utils/videoThumb'
-import { isHttpUrl } from '../../utils/youtube'
+import { frameFromFile, setFrame, thumbSource } from '../../utils/videoThumb'
 import { fmtDate } from '../player/ui'
 import MaterialFields from './MaterialFields'
 import MaterialRow from './MaterialRow'
 import { btn, btnGhost, input } from './ui'
 
 const TZ = 'Asia/Jakarta'
+const VIDEO_ACCEPT = 'video/*,.mkv'
+const VIDEO_EXT = /\.(mp4|mkv|webm|mov|m4v|avi|ogv)$/i
 
-// Form that replaces the bottom panel. The recording link is required; the material block is optional.
-// Remove material empties and closes the block, and Save then deletes the material from the session.
+// Form that replaces the bottom panel. A video file is uploaded to object storage (R2, mocked)
+// and its URL is saved to the session on Save; the material block is optional.
 const RecordForm = ({ s, onDone, onSaved }) => {
-  const [url, setUrl] = useState(s.vod?.url ?? '')
+  const [file, setFile] = useState(null)
   const [open, setOpen] = useState(!!s.material) // opens by itself when the session already has a material
   const [draft, setDraft] = useState(() => draftOf(s.material))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [phase, setPhase] = useState('')
+
+  const pick = async (f) => {
+    setError('')
+    if (!f) return setFile(null)
+    if (!f.type.startsWith('video/') && !VIDEO_EXT.test(f.name)) {
+      setFile(null)
+      return setError('Only video files are allowed (mp4, mkv, webm, mov).')
+    }
+    setFile(f)
+    setFrame(s.id, await frameFromFile(f)) // instant thumbnail preview while picking
+  }
+
+  const cancel = () => { setFrame(s.id, null); onDone() }
 
   const save = async () => {
-    const link = url.trim()
-    if (!link) return setError('Enter the VOD link.')
-    if (!isHttpUrl(link)) return setError('Link must start with http:// or https://')
+    let url = s.vod?.url ?? ''
     const { material, error: problem } = open ? readDraft(draft) : { material: null } // empty block = no material
     if (problem) return setError(problem)
+    if (!file && !url) return setError('Pick a video file.')
     setBusy(true); setError('')
-    try { await saveCoachRecording(s.id, { url: link, material }); await onSaved(); onDone() }
-    catch (e) { setError(e.message); setBusy(false) }
+    try {
+      if (file) {
+        setPhase('Uploading…')
+        url = (await uploadCoachVod(file)).url
+      }
+      setPhase('Saving…')
+      await saveCoachRecording(s.id, { url, material })
+      await onSaved(); onDone()
+    } catch (e) { setError(e.message); setBusy(false); setPhase('') }
   }
 
   return (
     <div className="space-y-3">
-      <label className="block text-xs text-white/60">VOD link
-        <input type="text" inputMode="url" placeholder="https://..." value={url} onChange={(e) => setUrl(e.target.value)} className={`${input} mt-1`} />
+      <label className="block text-xs text-white/60">VOD file (mp4, mkv, webm, mov)
+        <input type="file" accept={VIDEO_ACCEPT} onChange={(e) => pick(e.target.files[0])} className={`${input} mt-1`} />
       </label>
+      {file
+        ? <p className="text-xs text-white/70">{file.name} · {(file.size / 1048576).toFixed(1)} MB — uploads to storage on Save</p>
+        : s.vod && <p className="truncate text-xs text-white/50">Current: {s.vod.url}</p>}
       <MaterialFields open={open} draft={draft} onChange={setDraft} onOpen={() => setOpen(true)} onRemove={() => { setDraft(draftOf(null)); setOpen(false) }} />
       {error && <p className="text-xs text-gold-400">{error}</p>}
       <div className="flex gap-2">
-        <button type="button" onClick={save} disabled={busy} className={btn}>Save</button>
-        <button type="button" onClick={onDone} disabled={busy} className={btnGhost}>Cancel</button>
+        <button type="button" onClick={save} disabled={busy} className={btn}>{busy ? phase || 'Saving…' : 'Save'}</button>
+        <button type="button" onClick={cancel} disabled={busy} className={btnGhost}>Cancel</button>
       </div>
     </div>
   )
