@@ -120,7 +120,6 @@ const ratingHistory = {
     past('naufal_', 5, 'Banyak insight baru soal baca draft lawan.', -40),
   ],
 }
-const wallets = { 1: { available: 450000, pending: 300000 }, 2: { available: 800000, pending: 400000 } }
 
 const myOrders = () => orders.filter((o) => o.coachId === coachId())
 const mySessions = () => { const ids = myOrders().map((o) => o.id); return sessions.filter((x) => ids.includes(x.orderId)) }
@@ -204,7 +203,6 @@ export const mock = {
   saveProfile,
   getOrders: () => wait(myOrders()),
   getSessions: () => wait(mySessions()),
-  getWallet: () => wait(wallets[coachId()]),
   getRatings: () => wait(ratings()),
   saveReview,
   saveRecording,

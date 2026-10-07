@@ -98,8 +98,3 @@ export const pendingTasks = [
     urgent: false,
   },
 ]
-
-export const coachWallet = {
-  availableBalance: 450000,
-  pendingBalance: 300000,
-}
