@@ -73,7 +73,3 @@ export const transactionHistory = [
   },
 ]
 
-export const walletBalance = {
-  available: 250000,
-  pending: 450000,
-}
