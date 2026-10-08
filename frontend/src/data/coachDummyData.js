@@ -10,7 +10,6 @@ export const coachSummary = {
   activeCoaching: 3,
   upcomingSessions: 2,
   pendingReviews: 1,
-  availableBalance: 450000,
 }
 
 export const upcomingSessions = [
