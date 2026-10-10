@@ -18,7 +18,7 @@ export const updateCoachSession = (id, body) => (USE_MOCK ? mock.updateSession(i
 export const createCoachSchedule = (id, body) => (USE_MOCK ? mock.createSchedule(id, body) : request(`/sessions/${id}/schedule`, { method: 'POST', body })) // SESS-3 (stub: backend creates the Google Calendar event + Meet link; not implemented yet). body: { scheduledAt, scheduledEnd }
 export const completeCoachSession = (id) => (USE_MOCK ? mock.completeSession(id) : request(`/sessions/${id}/complete`, { method: 'PATCH' })) // SESS-5
 export const saveCoachReview = (id, body) => (USE_MOCK ? mock.saveReview(id, body) : request(`/orders/${id}/performance-review`, { method: 'POST', body })) // REV-5
-export const saveCoachRecording = (id, body) => (USE_MOCK ? mock.saveRecording(id, body) : request(`/sessions/${id}/recording`, { method: 'POST', body })) // SESS-6. body: { url, material } where material = { type, title, tagline, description, thumbnailUrl, link } | null (remove)
+export const saveCoachRecording = (id, body) => (USE_MOCK ? mock.saveRecording(id, body) : request(`/sessions/${id}/recording`, { method: 'POST', body })) // SESS-6. body: { url }
 // VOD-1  POST /uploads/vod (multipart file) -> { url }. Backend stores the file in object storage (R2).
 export const uploadCoachVod = (file) => {
   if (USE_MOCK) return mock.uploadVod(file)

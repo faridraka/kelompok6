@@ -3,7 +3,6 @@
 // playerMock.js so the real API can serve both sides with the same JSON.
 // Every date is RELATIVE to now (Jakarta time), so the countdown, the week board and the charts stay alive whenever it is opened.
 import { LANES, generateCoaches } from '../../data/coaches'
-import { readDraft } from '../../utils/material'
 import { getCoachId } from '../../utils/session'
 import { isHttpUrl } from '../../utils/youtube'
 
@@ -90,12 +89,6 @@ const sessions = [
   s('s203-2', 'ORD-203', 2, 1, '20:00', 'scheduled', LINK),
   s('s203-3', 'ORD-203', 3, 4, '19:00', 'scheduled'),
 ]
-// Materials (the MATERIALS table shape) on two completed sessions of Seemon: one guide, one fundamental.
-const YT = 'https://www.youtube.com/watch?v=aqz-KE-bpKQ'
-const attachMaterial = (sessionId, days, m) => {
-  Object.assign(sessions.find((x) => x.id === sessionId), { material: { id: `mat-${sessionId}`, thumbnailUrl: 'https://img.youtube.com/vi/aqz-KE-bpKQ/hqdefault.jpg', link: YT, createdAt: daysFromNow(days, '21:00'), ...m } })
-}
-
 // Ratings from players who are no longer in the order list, spread from about -175 to -35 days, scores climbing over time.
 // The Rating trend only draws the last 6 calendar months, so the oldest one or two count in the average but not in the chart.
 // ALL coach ratings come from this list plus the rating on each rated order (see ratings() below). Nothing is hard-coded.
@@ -158,22 +151,11 @@ const uploadVod = (file) => {
 }
 
 // Saves the VOD on the session itself, in the shape PlayerVods reads: { url, downloadUrl }.
-// material: an object = add or replace the session's material, null = remove it, undefined = leave it alone.
-// An existing material keeps its id and createdAt when it is edited. Nothing is uploaded: only links are kept.
-const saveRecording = (sessionId, { url, material }) => {
+const saveRecording = (sessionId, { url }) => {
   const s = mine(sessionId)
   if (s.status !== 'completed') throw new Error('Finish the session first')
   if (!isHttpUrl(url)) throw new Error('Link must start with http:// or https://')
-  const checked = material ? readDraft(material) : { material: null }
-  if (checked.error) throw new Error(checked.error)
   s.vod = { url, downloadUrl: url }
-  if (material !== undefined) {
-    if (!checked.material) delete s.material // null, or a block with nothing in it
-    else {
-      const { type, title, tagline, description, thumbnailUrl, link } = checked.material
-      s.material = { id: s.material?.id ?? crypto.randomUUID(), type, title, tagline, description, thumbnailUrl, link, createdAt: s.material?.createdAt ?? new Date().toISOString() }
-    }
-  }
   return wait(s)
 }
 

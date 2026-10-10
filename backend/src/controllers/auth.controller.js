@@ -9,6 +9,7 @@ export const authController = {
       email,
       password,
       email_confirm: true,
+      app_metadata: { role },
       user_metadata: { name, role },
     });
     if (error) throw new AppError(error.message, 400);
@@ -23,14 +24,7 @@ export const authController = {
       password,
     });
     if (error) throw new AppError(error.message, 401);
-
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .single();
-    if (profileError) throw new AppError("Profil tidak ditemukan", 500);
-
+    
     return c.json(
       {
         access_token: data.session.access_token,
@@ -39,7 +33,7 @@ export const authController = {
         user: {
           id: data.user.id,
           email: data.user.email,
-          role: profile.role, // DIUBAH
+          role: data.user.app_metadata?.role,
         },
       },
       200,

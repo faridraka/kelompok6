@@ -1,11 +1,8 @@
 import { useState } from 'react'
 import { FiPlay, FiPlus } from 'react-icons/fi'
 import { saveCoachRecording, uploadCoachVod } from '../../api/coach'
-import { draftOf, readDraft } from '../../utils/material'
 import { frameFromFile, setFrame, thumbSource } from '../../utils/videoThumb'
 import { fmtDate } from '../player/ui'
-import MaterialFields from './MaterialFields'
-import MaterialRow from './MaterialRow'
 import { btn, btnGhost, input } from './ui'
 
 const TZ = 'Asia/Jakarta'
@@ -13,11 +10,9 @@ const VIDEO_ACCEPT = 'video/*,.mkv'
 const VIDEO_EXT = /\.(mp4|mkv|webm|mov|m4v|avi|ogv)$/i
 
 // Form that replaces the bottom panel. A video file is uploaded to object storage (R2, mocked)
-// and its URL is saved to the session on Save; the material block is optional.
+// and its URL is saved to the session on Save.
 const RecordForm = ({ s, onDone, onSaved }) => {
   const [file, setFile] = useState(null)
-  const [open, setOpen] = useState(!!s.material) // opens by itself when the session already has a material
-  const [draft, setDraft] = useState(() => draftOf(s.material))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [phase, setPhase] = useState('')
@@ -37,8 +32,6 @@ const RecordForm = ({ s, onDone, onSaved }) => {
 
   const save = async () => {
     let url = s.vod?.url ?? ''
-    const { material, error: problem } = open ? readDraft(draft) : { material: null } // empty block = no material
-    if (problem) return setError(problem)
     if (!file && !url) return setError('Pick a video file.')
     setBusy(true); setError('')
     try {
@@ -47,7 +40,7 @@ const RecordForm = ({ s, onDone, onSaved }) => {
         url = (await uploadCoachVod(file)).url
       }
       setPhase('Saving…')
-      await saveCoachRecording(s.id, { url, material })
+      await saveCoachRecording(s.id, { url })
       await onSaved(); onDone()
     } catch (e) { setError(e.message); setBusy(false); setPhase('') }
   }
@@ -60,7 +53,6 @@ const RecordForm = ({ s, onDone, onSaved }) => {
       {file
         ? <p className="text-xs text-white/70">{file.name} · {(file.size / 1048576).toFixed(1)} MB — uploads to storage on Save</p>
         : s.vod && <p className="truncate text-xs text-white/50">Current: {s.vod.url}</p>}
-      <MaterialFields open={open} draft={draft} onChange={setDraft} onOpen={() => setOpen(true)} onRemove={() => { setDraft(draftOf(null)); setOpen(false) }} />
       {error && <p className="text-xs text-gold-400">{error}</p>}
       <div className="flex gap-2">
         <button type="button" onClick={save} disabled={busy} className={btn}>{busy ? phase || 'Saving…' : 'Save'}</button>
@@ -130,7 +122,6 @@ const RecordingCard = ({ s, order, editing, onEdit, onDone, onSaved }) => {
                 </>
               )}
             </div>
-            {s.material && <MaterialRow key={s.material.id + s.material.thumbnailUrl} m={s.material} />}
           </>
         )}
       </div>
