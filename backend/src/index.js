@@ -81,6 +81,8 @@ app.doc("/openapi.json", {
   tags: [
     { name: "System", description: "System related endpoints" },
     { name: "Authentication", description: "Authentication related endpoints" },
+    { name: "Sessions", description: "Sessions related endpoints" },
+    { name: "Uploads", description: "Uploads related endpoints" },
   ],
 });
 
