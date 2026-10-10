@@ -189,9 +189,160 @@ export const sessionController = {
     if (updateError) throw new AppError(updateError.message, 500);
     if (!updatedSession) throw new AppError("Session tidak ditemukan", 404);
 
-    return c.json(
-      toSession(updatedSession, order.session_count ?? 3),
-      200,
-    );
+    return c.json(toSession(updatedSession, order.session_count ?? 3), 200);
+  },
+  rescheduleSession: async (c) => {
+    const user = c.get("user");
+    if (!user?.id) throw new AppError("Unauthorized", 401);
+
+    const { id } = c.req.valid("param");
+    const { scheduledAt, scheduledEnd } = c.req.valid("json");
+
+    const { data: session, error } = await supabaseAdmin
+      .from("sessions")
+      .select("id, order_id, google_event_id, status")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) throw new AppError(error.message, 500);
+    if (!session) throw new AppError("Session tidak ditemukan", 404);
+    if (session.status === "completed")
+      throw new AppError("Session yang sudah selesai tidak bisa diubah", 400);
+    if (!session.google_event_id)
+      throw new AppError("Session belum dijadwalkan", 400);
+
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from("orders")
+      .select("coach_id, session_count")
+      .eq("id", session.order_id)
+      .maybeSingle();
+
+    if (orderError) throw new AppError(orderError.message, 500);
+    if (!order) throw new AppError("Order tidak ditemukan", 404);
+    if (order.coach_id !== user.id)
+      throw new AppError("Session bukan milik coach ini", 403);
+
+    try {
+      await googleCalendar.events.patch({
+        calendarId: "primary",
+        eventId: session.google_event_id,
+        sendUpdates: "all",
+        requestBody: {
+          start: { dateTime: scheduledAt, timeZone: "Asia/Jakarta" },
+          end: { dateTime: scheduledEnd, timeZone: "Asia/Jakarta" },
+        },
+      });
+    } catch (e) {
+      throw new AppError(
+        e?.response?.data?.error?.message ??
+          e?.message ??
+          "Gagal mengubah jadwal di Google Calendar",
+        502,
+      );
+    }
+
+    const { data: updatedSession, error: updateError } = await supabaseAdmin
+      .from("sessions")
+      .update({
+        scheduled_at: scheduledAt,
+        scheduled_end: scheduledEnd,
+      })
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (updateError) throw new AppError(updateError.message, 500);
+    if (!updatedSession) throw new AppError("Session tidak ditemukan", 404);
+
+    return c.json(toSession(updatedSession, order.session_count ?? 3), 200);
+  },
+  completedSession: async (c) => {
+    const user = c.get("user");
+    if (!user?.id) throw new AppError("Unauthorized", 401);
+
+    const { id } = c.req.valid("param");
+
+    const { data: session, error } = await supabaseAdmin
+      .from("sessions")
+      .select("order_id, scheduled_at, scheduled_end, status, google_event_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) throw new AppError(error.message, 500);
+    if (!session) throw new AppError("Session tidak ditemukan", 404);
+
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from("orders")
+      .select("player_id, coach_id, session_count")
+      .eq("id", session.order_id)
+      .maybeSingle();
+
+    if (orderError) throw new AppError(orderError.message, 500);
+    if (!order) throw new AppError("Order tidak ditemukan", 404);
+    if (order.player_id !== user.id && order.coach_id !== user.id)
+      throw new AppError("Session bukan milik user ini", 403);
+
+    if (session.status === "completed")
+      throw new AppError("Session sudah ditandai sebagai completed", 400);
+    if (!session.scheduled_at || !session.google_event_id)
+      throw new AppError("Session belum dijadwalkan", 400);
+    if (!session.scheduled_end || new Date(session.scheduled_end) > new Date())
+      throw new AppError("Session belum selesai", 400);
+
+    const { data: updatedSession, error: updateError } = await supabaseAdmin
+      .from("sessions")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (updateError) throw new AppError(updateError.message, 500);
+    if (!updatedSession) throw new AppError("Session tidak ditemukan", 404);
+
+    return c.json(toSession(updatedSession, order.session_count ?? 3), 200);
+  },
+  saveRecording: async (c) => {
+    const user = c.get("user");
+    if (!user?.id) throw new AppError("Unauthorized", 401);
+
+    const { id } = c.req.valid("param");
+    const { url } = c.req.valid("json");
+
+    const { data: session, error } = await supabaseAdmin
+      .from("sessions")
+      .select("order_id, status")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) throw new AppError(error.message, 500);
+    if (!session) throw new AppError("Session tidak ditemukan", 404);
+    if (session.status !== "completed")
+      throw new AppError("Rekaman hanya bisa ditambahkan ke session yang sudah completed", 400);
+
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from("orders")
+      .select("coach_id, session_count")
+      .eq("id", session.order_id)
+      .maybeSingle();
+
+    if (orderError) throw new AppError(orderError.message, 500);
+    if (!order) throw new AppError("Order tidak ditemukan", 404);
+    if (order.coach_id !== user.id)
+      throw new AppError("Session bukan milik coach ini", 403);
+
+    const { data: updatedSession, error: updateError } = await supabaseAdmin
+      .from("sessions")
+      .update({ vod_url: url, vod_download_url: url })
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (updateError) throw new AppError(updateError.message, 500);
+    if (!updatedSession) throw new AppError("Session tidak ditemukan", 404);
+
+    return c.json(toSession(updatedSession, order.session_count ?? 3), 200);
   },
 };

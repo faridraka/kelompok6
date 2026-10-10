@@ -42,7 +42,7 @@ export const GetSessionsQuery = z.object({
   }),
 })
 
-export const CreateScheduleSessionParams = z.object({
+export const ScheduleSessionParams = z.object({
   id: z.string().uuid().openapi({
     param: { name: 'id', in: 'path' },
     example: 'dea8125a-cd7a-499c-adec-f89513d32e74',
@@ -50,7 +50,7 @@ export const CreateScheduleSessionParams = z.object({
   }),
 })
 
-export const CreateScheduleSessionBody = z.object({
+export const ScheduleSessionBody = z.object({
   scheduledAt: z.string().datetime({ offset: true }).openapi({
     example: '2026-10-03T20:00:00+07:00',
     description: 'Waktu mulai sesi (ISO 8601).',
@@ -58,5 +58,12 @@ export const CreateScheduleSessionBody = z.object({
   scheduledEnd: z.string().datetime({ offset: true }).openapi({
     example: '2026-10-03T21:00:00+07:00',
     description: 'Waktu selesai sesi (ISO 8601).',
+  }),
+})
+
+export const RecordingBody = z.object({
+  url: z.string().url().openapi({
+    example: 'https://kencana.basic.box.cloudeka.id/metagames-bucket-li17ed/vods/video.mp4',
+    description: 'URL publik file VOD (hasil POST /uploads/vod).',
   }),
 })
