@@ -11,6 +11,7 @@
     "@scalar/hono-api-reference": "^0.12.2",
     "@supabase/supabase-js": "^2.117.2",
     "dotenv": "^18.0.1",
+    "googleapis": "^185.0.0",
     "hono": "^4.13.7",
     "zod": "^4.6.5"
   }

@@ -41,3 +41,22 @@ export const GetSessionsQuery = z.object({
     description: 'Opsional: filter sessions milik satu order. Order harus milik user yang login.',
   }),
 })
+
+export const CreateScheduleSessionParams = z.object({
+  id: z.string().uuid().openapi({
+    param: { name: 'id', in: 'path' },
+    example: 'dea8125a-cd7a-499c-adec-f89513d32e74',
+    description: 'ID session yang mau dijadwalkan.',
+  }),
+})
+
+export const CreateScheduleSessionBody = z.object({
+  scheduledAt: z.string().datetime({ offset: true }).openapi({
+    example: '2026-10-03T20:00:00+07:00',
+    description: 'Waktu mulai sesi (ISO 8601).',
+  }),
+  scheduledEnd: z.string().datetime({ offset: true }).openapi({
+    example: '2026-10-03T21:00:00+07:00',
+    description: 'Waktu selesai sesi (ISO 8601).',
+  }),
+})
