@@ -1,5 +1,5 @@
 import { createMiddleware } from 'hono/factory'
-import { anonClient } from '../lib/supabase.js'
+import { supabase } from '../lib/supabase.js'
 import { AppError } from '../utils/error.js'
 
 export const auth = createMiddleware(async (c, next) => {
@@ -7,7 +7,7 @@ export const auth = createMiddleware(async (c, next) => {
   const token = header?.startsWith('Bearer ') ? header.slice(7) : null
   if (!token) throw new AppError('Unauthorized', 401)
 
-  const { data, error } = await anonClient().auth.getUser(token)
+  const { data, error } = await supabase.auth.getUser(token)
   if (error || !data.user) throw new AppError('Token tidak valid', 401)
 
   c.set('user', {
