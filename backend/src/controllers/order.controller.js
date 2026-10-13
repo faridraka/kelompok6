@@ -1,17 +1,12 @@
 import { supabaseAdmin } from '../lib/supabase.js'
 import { AppError } from '../utils/error.js'
 
-// Must stay in sync with TAX_RATE in frontend/src/utils/pricing.js.
 const TAX_RATE = 0.11
 const SESSIONS_PER_ORDER = 3
 
-// Hono only sends thrown values that are real Error objects to app.onError (which logs them and answers 500).
-// Wrapping makes sure a database failure always ends as a clean 500 instead of crashing the request.
 const dbError = (error) => new Error(error.message ?? 'Database error', { cause: error })
 
-// ---------- Supabase select strings ----------
-// "alias:table!constraint(columns)" is a join. The "!constraint" part names the foreign key to follow,
-// so Supabase never has to guess when two tables are linked more than one way.
+
 const COACH = 'coach:coach_profiles!orders_coach_id_fkey(id, avatar_url, discord_username, profile:profiles!coach_profiles_id_fkey(name))'
 const PLAYER = 'player:profiles!orders_player_id_fkey(name)'
 const REVIEW = 'performance_review:performance_reviews(notes, strengths, weaknesses, recommendation)'
@@ -23,10 +18,8 @@ const DETAIL_SELECT =
   'id, lane, status, package_type, session_count, subtotal, tax, discount, total_price, currency, created_at, ' +
   `${COACH}, sessions(id, session_number, scheduled_at, scheduled_end, status, meeting_link), ${REVIEW}, ${RATING}`
 
-// ---------- Formatters: database row (snake_case) -> JSON the frontend expects (camelCase) ----------
+// ---------- Formatters: ----------
 
-// performance_reviews and ratings are one-to-one with an order. Supabase returns an object or null,
-// but unwrap a one-item array just in case.
 const one = (value) => (Array.isArray(value) ? value[0] : value) ?? null
 
 const formatReview = (r) =>
