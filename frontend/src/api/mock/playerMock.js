@@ -46,7 +46,7 @@ export const mock = {
       demo.completedAt = new Date().toISOString()
       return wait(demo)
     }
-    const KEY = 'metagames_mock_db'
+    const KEY = 'metagames_mock_db_v2'
     const db = JSON.parse(localStorage.getItem(KEY) || '{"orders":{},"payments":{}}')
     for (const o of Object.values(db.orders)) {
       const ses = o.sessions.find((x) => x.id === id)
