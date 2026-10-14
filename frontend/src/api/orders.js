@@ -15,8 +15,8 @@
 import { request, USE_MOCK } from './client'
 import * as mock from './mock/ordersMock'
 
-// ORD-1  POST /orders  -> creates order + auto-schedules the 3 sessions
-// payload: { coachId, lane, billing: { firstName, lastName, email, zip, state, country } }
+// ORD-1  POST /orders  -> creates order with the 3 player-picked sessions
+// payload: { coachId, lane, billing: { firstName, lastName, email }, schedules: [ISO x3] }
 export const createOrder = (payload) =>
   USE_MOCK ? mock.createOrder(payload) : request('/orders', { method: 'POST', body: payload })
 

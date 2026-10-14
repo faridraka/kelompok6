@@ -8,22 +8,30 @@ const load = () => JSON.parse(localStorage.getItem(KEY) || '{"orders":{},"paymen
 const save = (db) => localStorage.setItem(KEY, JSON.stringify(db))
 const uid = (p) => `${p}_${Math.random().toString(36).slice(2, 10)}`
 
-const autoSchedule = () =>
-  [0, 1, 2].map((i) => {
-    return { id: uid('ses'), sessionNumber: i + 1, totalSessions: 3, scheduledAt: null, scheduledEnd: null, status: 'scheduled', meetingLink: null }
-  })
+const endOfHour = (iso) => {
+  const [date, rest] = iso.split('T')
+  const h = Number(rest.slice(0, 2))
+  return `${date}T${String(h + 1).padStart(2, '0')}:00:00+07:00`
+}
 
-export const createOrder = async ({ coachId, lane }) => {
+export const createOrder = async ({ coachId, lane, schedules }) => {
   await wait()
   const coach = generateCoaches(9).find((c) => String(c.id) === String(coachId))
   if (!coach) throw new Error('Coach not found')
+  if (!lane) throw new Error('Pick a lane.')
+  const picked = [...(schedules ?? [])].sort()
+  if (picked.length !== 3) throw new Error('Pick 3 session times.')
   const t = calcTotals(coach.price)
   const order = {
     id: uid('ord'), status: 'pending_payment',
     coach: { id: coach.id, name: coach.name, avatar: null },
     lane, packageType: '3_session', sessionCount: 3,
     subtotal: t.subtotal, tax: t.tax, discount: t.discount, totalPrice: t.total, currency: 'IDR',
-    createdAt: new Date().toISOString(), sessions: autoSchedule(),
+    createdAt: new Date().toISOString(),
+    sessions: picked.map((scheduledAt, i) => ({
+      id: uid('ses'), sessionNumber: i + 1, totalSessions: 3,
+      scheduledAt, scheduledEnd: endOfHour(scheduledAt), status: 'scheduled', meetingLink: null,
+    })),
   }
   const db = load(); db.orders[order.id] = order; save(db)
   return order

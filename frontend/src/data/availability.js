@@ -76,3 +76,41 @@ export const validateAvailability = (av) => {
 
 export const countSlots = (av) =>
   DAY_KEYS.reduce((n, k) => n + (Array.isArray(av?.[k]) ? av[k].length : 0), 0)
+
+// Deterministic demo seeds so every public coach (1..9) has bookable hours.
+// All templates respect the MIN_GAP rule. Shared by generateCoaches (player
+// side) and coachMock (coach side) so both start from the same data.
+const SEED_TEMPLATES = [
+  {
+    monday: ['09:00', '13:00', '17:00', '20:00'],
+    tuesday: ['10:00', '14:00', '18:00'],
+    wednesday: ['09:00', '13:00', '17:00', '20:00'],
+    thursday: ['10:00', '14:00', '18:00'],
+    friday: ['09:00', '13:00', '17:00'],
+    saturday: ['10:00', '14:00', '18:00'],
+    sunday: [],
+  },
+  {
+    monday: ['10:00', '14:00', '18:00'],
+    tuesday: ['09:00', '13:00', '17:00', '20:00'],
+    wednesday: ['10:00', '14:00', '18:00'],
+    thursday: ['09:00', '13:00', '17:00', '20:00'],
+    friday: ['10:00', '14:00', '18:00'],
+    saturday: ['09:00', '12:00', '15:00'],
+    sunday: ['10:00', '13:00', '16:00'],
+  },
+  {
+    monday: ['17:00', '20:00'],
+    tuesday: ['17:00', '20:00'],
+    wednesday: ['17:00', '20:00'],
+    thursday: ['17:00', '20:00'],
+    friday: ['17:00', '20:00'],
+    saturday: ['10:00', '13:00', '16:00', '19:00'],
+    sunday: ['10:00', '13:00', '16:00'],
+  },
+]
+
+export const seedAvailabilityForCoach = (id) => {
+  const t = SEED_TEMPLATES[(Number(id) - 1 + SEED_TEMPLATES.length * 10) % SEED_TEMPLATES.length] ?? SEED_TEMPLATES[0]
+  return structuredClone(t)
+}

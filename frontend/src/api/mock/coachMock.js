@@ -16,30 +16,8 @@ const wait = (v) => new Promise((r) => setTimeout(() => r(structuredClone(v)), 2
 // Coach Faros (id 1, lanes from data/coaches.js: gold, mid) and Coach Seemon (id 2, lanes set here: jungle, gold, exp).
 // These two objects are the editable profiles: saveProfile changes them, and every page reads them through getProfile.
 const COACHES = generateCoaches(9).slice(0, 2).map((c) => (c.id === 2 ? { ...c, lanes: ['jungle', 'gold', 'exp'] } : c))
-
-// Demo weekly availability (1-hour sessions, 2-hour break => starts >= 3h apart).
-const seedAvailability = (overrides) => ({ ...emptyAvailability(), ...overrides })
-COACHES.forEach((c) => {
-  c.availability = c.id === 2
-    ? seedAvailability({
-      monday: ['09:00', '13:00', '17:00', '20:00'],
-      tuesday: ['10:00', '14:00', '18:00'],
-      wednesday: ['09:00', '13:00', '17:00', '20:00'],
-      thursday: ['10:00', '14:00', '18:00'],
-      friday: ['09:00', '13:00', '17:00'],
-      saturday: ['10:00', '14:00', '18:00'],
-      sunday: [],
-    })
-    : seedAvailability({
-      monday: ['09:00', '12:00', '15:00', '19:00'],
-      tuesday: [],
-      wednesday: ['09:00', '12:00', '15:00', '19:00'],
-      thursday: [],
-      friday: ['09:00', '12:00', '15:00'],
-      saturday: ['10:00', '13:00', '16:00'],
-      sunday: [],
-    })
-})
+// Availability seeds come from generateCoaches (shared with the player side),
+// so the coach profile and the checkout picker start from the same data.
 
 // The mock seed only has coaches 1 and 2, but a real backend login returns a UUID.
 // Without this, a backend coach id matches nothing and every coach page renders empty.
