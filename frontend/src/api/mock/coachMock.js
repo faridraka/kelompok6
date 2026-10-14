@@ -160,14 +160,13 @@ const saveRecording = (sessionId, { url }) => {
 }
 
 // Saves the profile fields the coach may edit (the rating and id are not editable). Same rules as the form.
-const saveProfile = ({ name, academyLabel, peakRank, mainHero, price, bio, lanes, avatar, discordUsername }) => {
+const saveProfile = ({ name, academyLabel, peakRank, mainHero, price, bio, lanes, avatar }) => {
   if (!String(name ?? '').trim()) throw new Error('Enter a display name.')
   if (!Number.isFinite(price) || price < 0) throw new Error('Enter a price (0 or more).')
   if (String(bio ?? '').length > 300) throw new Error('Bio must be 300 characters or less.')
   if (!lanes?.length || lanes.length > 3 || lanes.some((l) => !LANES.some((x) => x.key === l))) throw new Error('Pick 1 to 3 lanes.')
-  if (!String(discordUsername ?? '').trim()) throw new Error('Enter your Discord username.')
   const m = me()
-  return wait(Object.assign(m, { name: name.trim(), academyLabel, peakRank, mainHero, price, bio, lanes: [...lanes], avatar: avatar ?? m.avatar ?? null, discordUsername: discordUsername.trim() }))
+  return wait(Object.assign(m, { name: name.trim(), academyLabel, peakRank, mainHero, price, bio, lanes: [...lanes], avatar: avatar ?? m.avatar ?? null }))
 }
 
 // AVA-1 stub: simulates object storage (R2). Returns a data URL so the mock avatar displays.

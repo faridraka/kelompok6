@@ -1,12 +1,12 @@
 import { Link } from 'react-router'
-import { getConfig, getMe, getOrders, getSessions } from '../../api/player'
+import { getMe, getOrders, getSessions } from '../../api/player'
 import { laneLabel } from '../../data/coaches'
 import { useAsync } from '../../hooks/useAsync'
-import { Async, Empty, PageHeader, btn, btnGhost, fmtRange } from '../../components/player/ui'
+import { Async, Empty, PageHeader, btn, fmtRange } from '../../components/player/ui'
 
 const load = async () => {
-  const [orders, sessions, me, config] = await Promise.all([getOrders(), getSessions(), getMe(), getConfig()])
-  return { orders, sessions, me, config }
+  const [orders, sessions, me] = await Promise.all([getOrders(), getSessions(), getMe()])
+  return { orders, sessions, me }
 }
 const Stat = ({ label, value }) => (
   <div className="border border-white/10 bg-navy-900/70 backdrop-blur-sm px-6 py-5">
@@ -21,7 +21,7 @@ const PlayerDashboard = () => {
     <>
       <PageHeader title="Dashboard" />
       <Async state={state}>
-        {({ orders, sessions, me, config }) => {
+        {({ orders, sessions, me }) => {
           const upcoming = sessions.filter((s) => s.status === 'scheduled').sort((a, b) => (!a.scheduledAt - !b.scheduledAt) || (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''))
           const next = upcoming[0]
           const toRate = orders.filter((o) => o.status === 'awaiting_rating')
@@ -77,7 +77,6 @@ const PlayerDashboard = () => {
                     )
                   })}
                 </div>
-                <a href={config.discordInviteUrl} target="_blank" rel="noopener noreferrer" className={`${btnGhost} mt-4`}>Message your coach on Discord</a>
               </section>
             </div>
           )

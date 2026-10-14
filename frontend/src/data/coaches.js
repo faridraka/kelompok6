@@ -27,7 +27,6 @@ const DUMMY_COACHES = [
       reviewerName: 'Mars H.',
     },
     price: 450000,
-    discordUsername: 'coach_faros',
     avatar: testAvatar1,
   },
   {
@@ -44,7 +43,6 @@ const DUMMY_COACHES = [
       reviewerName: 'Matt',
     },
     price: 400000,
-    discordUsername: 'coach_seemon',
     avatar: testAvatar2,
   },
 ]
