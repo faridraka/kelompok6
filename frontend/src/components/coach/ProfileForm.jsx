@@ -8,7 +8,7 @@ import { btn, btnGhost, card, input } from './ui'
 const MAX_LANES = 3
 const BIO_MAX = 300
 const label = 'block text-xs text-white/60'
-const startOf = (c) => ({ name: c.name, academyLabel: c.academyLabel, peakRank: c.peakRank, mainHero: c.mainHero, price: String(c.price), bio: c.bio, lanes: c.lanes, discordUsername: c.discordUsername ?? '' })
+const startOf = (c) => ({ name: c.name, academyLabel: c.academyLabel, peakRank: c.peakRank, mainHero: c.mainHero, price: String(c.price), bio: c.bio, lanes: c.lanes })
 
 // Edit side of the profile page. Save uploads a new avatar first (if picked), then sends the whole form;
 // Reset puts back what is saved.
@@ -40,7 +40,6 @@ const ProfileForm = ({ coach, onSaved }) => {
     if (!f.name.trim()) return setError('Enter a display name.')
     if (f.price === '') return setError('Enter a price (0 or more).')
     if (!f.lanes.length) return setError('Pick at least 1 lane.')
-    if (!f.discordUsername.trim()) return setError('Enter your Discord username.')
     setBusy(true); setError('')
     try {
       let avatar
@@ -49,7 +48,7 @@ const ProfileForm = ({ coach, onSaved }) => {
         avatar = (await uploadCoachAvatar(avatarFile)).url
       }
       setPhase('Saving…')
-      await saveCoachProfile({ name: f.name.trim(), academyLabel: f.academyLabel.trim(), peakRank: f.peakRank.trim(), mainHero: f.mainHero.trim(), price: Number(f.price), bio: f.bio.trim(), lanes: f.lanes, avatar, discordUsername: f.discordUsername.trim() })
+      await saveCoachProfile({ name: f.name.trim(), academyLabel: f.academyLabel.trim(), peakRank: f.peakRank.trim(), mainHero: f.mainHero.trim(), price: Number(f.price), bio: f.bio.trim(), lanes: f.lanes, avatar })
       profileChanged() // the nav chip loads the new name
       await onSaved()
       setAvatarFile(null)
@@ -72,9 +71,6 @@ const ProfileForm = ({ coach, onSaved }) => {
       </div>
       <label className={label}>Display name
         <input type="text" {...text('name')} />
-      </label>
-      <label className={label}>Discord username
-        <input type="text" placeholder="coach_name" {...text('discordUsername')} />
       </label>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className={label}>Academy label

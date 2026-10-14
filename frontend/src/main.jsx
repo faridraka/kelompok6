@@ -10,7 +10,7 @@ import LandingPage from './pages/LandingPage.jsx'
 import CoachesPage from './pages/CoachesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
-import CartPage from './pages/CartPage.jsx'
+import CartRedirect from './pages/CartRedirect.jsx'
 import CheckoutPage from './pages/CheckoutPage.jsx'
 import PaymentPage from './pages/PaymentPage.jsx'
 import OrderSuccessPage from './pages/OrderSuccessPage.jsx'
@@ -40,7 +40,7 @@ const router = createBrowserRouter([
       { path: 'login', Component: LoginPage, loader: guestLoader },
       { path: 'register', Component: RegisterPage, loader: guestLoader },
       { path: 'coaches', Component: CoachesPage },
-      { path: 'cart', Component: CartPage, loader: protectedLoader },
+      { path: 'cart', Component: CartRedirect, loader: protectedLoader },
       { path: 'checkout', Component: CheckoutPage, loader: protectedLoader },
       { path: 'payment/:paymentId', Component: PaymentPage, loader: protectedLoader },
       { path: 'orders/:orderId/success', Component: OrderSuccessPage, loader: protectedLoader },
