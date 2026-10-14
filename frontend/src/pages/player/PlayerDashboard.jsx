@@ -22,7 +22,7 @@ const PlayerDashboard = () => {
       <PageHeader title="Dashboard" />
       <Async state={state}>
         {({ orders, sessions, me }) => {
-          const upcoming = sessions.filter((s) => s.status === 'scheduled').sort((a, b) => (!a.scheduledAt - !b.scheduledAt) || (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''))
+          const upcoming = sessions.filter((s) => s.status === 'scheduled').sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
           const next = upcoming[0]
           const toRate = orders.filter((o) => o.status === 'awaiting_rating')
           const count = (st) => orders.filter((o) => o.status === st).length
@@ -41,9 +41,9 @@ const PlayerDashboard = () => {
                   <div className="flex flex-col gap-4 border border-white/10 bg-navy-900/70 backdrop-blur-sm p-6 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="font-semibold text-white">{next.coach.name} · Session {next.sessionNumber}/{next.totalSessions}</p>
-                      {next.scheduledAt && <p className="mt-1 text-sm text-white/60">{fmtRange(next.scheduledAt, next.scheduledEnd, me.timezone)}</p>}
+                      <p className="mt-1 text-sm text-white/60">{fmtRange(next.scheduledAt, next.scheduledEnd, me.timezone)}</p>
                     </div>
-                    {next.meetingLink ? <a href={next.meetingLink} target="_blank" rel="noopener noreferrer" className={btn}>Join meeting</a> : <span className="text-sm text-gold-400">Waiting for schedule</span>}
+                    <a href={next.meetingLink} target="_blank" rel="noopener noreferrer" className={btn}>Join meeting</a>
                   </div>
                 ) : <Empty>No upcoming sessions.</Empty>}
               </section>

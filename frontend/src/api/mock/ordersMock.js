@@ -1,8 +1,11 @@
 // MOCK BACKEND (localStorage). DELETE this folder when the real API is live.
+// v2: sessions are picked by the player at checkout, so every session is born
+// with scheduledAt/scheduledEnd + a Meet link. The key is versioned so stale
+// v1 orders (unscheduled sessions, no links) never load.
 import { generateCoaches } from '../../data/coaches'
 import { calcTotals } from '../../utils/pricing'
 
-const KEY = 'metagames_mock_db'
+const KEY = 'metagames_mock_db_v2'
 const wait = (ms = 400) => new Promise((r) => setTimeout(r, ms))
 const load = () => JSON.parse(localStorage.getItem(KEY) || '{"orders":{},"payments":{}}')
 const save = (db) => localStorage.setItem(KEY, JSON.stringify(db))
@@ -28,10 +31,15 @@ export const createOrder = async ({ coachId, lane, schedules }) => {
     lane, packageType: '3_session', sessionCount: 3,
     subtotal: t.subtotal, tax: t.tax, discount: t.discount, totalPrice: t.total, currency: 'IDR',
     createdAt: new Date().toISOString(),
-    sessions: picked.map((scheduledAt, i) => ({
-      id: uid('ses'), sessionNumber: i + 1, totalSessions: 3,
-      scheduledAt, scheduledEnd: endOfHour(scheduledAt), status: 'scheduled', meetingLink: null,
-    })),
+    // Times are picked at checkout, so the backend creates the Meet links right away.
+    sessions: picked.map((scheduledAt, i) => {
+      const id = uid('ses')
+      return {
+        id, sessionNumber: i + 1, totalSessions: 3,
+        scheduledAt, scheduledEnd: endOfHour(scheduledAt), status: 'scheduled',
+        meetingLink: `https://meet.google.com/mock-${id.toLowerCase()}`,
+      }
+    }),
   }
   const db = load(); db.orders[order.id] = order; save(db)
   return order

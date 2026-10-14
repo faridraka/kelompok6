@@ -65,5 +65,4 @@ export const axisHours = (hours) => {
 // Status text and colour. Cyan = completed, gold = needs action.
 export const statusOf = (s) =>
   s.status === 'completed' ? ['Completed', 'text-cyan-glow']
-  : !s.scheduledAt ? ['Waiting for schedule', 'text-gold-400']
   : ['Scheduled', 'text-white/80']

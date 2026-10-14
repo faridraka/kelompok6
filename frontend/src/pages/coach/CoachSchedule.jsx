@@ -7,10 +7,9 @@ import NextSessionCard from '../../components/coach/NextSessionCard'
 import SessionDetail from '../../components/coach/SessionDetail'
 import WeekBoard from '../../components/coach/WeekBoard'
 import { plural } from '../../components/coach/stats'
-import { Empty, btn, btnGhost, card } from '../../components/coach/ui'
+import { Empty, btnGhost } from '../../components/coach/ui'
 import { Async, PageHeader, Pill } from '../../components/player/ui'
 import { useAsync } from '../../hooks/useAsync'
-import { laneLabel } from '../../data/coaches'
 import { addDays, dayKey, mondayOf, rangeLabel } from '../../utils/schedule'
 
 const FILTERS = [['all', 'All'], ['scheduled', 'Upcoming'], ['completed', 'Completed']]
@@ -18,7 +17,7 @@ const load = async () => {
   const [orders, sessions] = await Promise.all([getCoachOrders(), getCoachSessions()])
   return { orders, sessions }
 }
-const byDate = (a, b) => (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? '')
+const byDate = (a, b) => a.scheduledAt.localeCompare(b.scheduledAt)
 const toDetail = () => document.getElementById('session-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
 const CoachSchedule = () => {
@@ -42,17 +41,15 @@ const CoachSchedule = () => {
   // The NEXT card's button: select that session, move the board to its week, then jump to the panel.
   const showSession = (s) => {
     setPick(s.id)
-    const key = dayKey(s.scheduledAt) || dayKey(new Date())
-    setWeekStart(mondayOf(key))
+    setWeekStart(mondayOf(dayKey(s.scheduledAt)))
     setTimeout(toDetail) // after React has redrawn the board
   }
 
   // Everything the page draws, once the data is there (kept while it reloads after a save).
-  // Unscheduled sessions sort last so the NEXT card prefers the closest dated session.
-  const byDateNullsLast = (a, b) => (!a.scheduledAt - !b.scheduledAt) || (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? '')
+  // Every session has a date (picked by the player at checkout), so plain date sorts are enough.
   const view = state.data && (() => {
     const { orders, sessions } = state.data
-    const upcoming = sessions.filter((s) => s.status === 'scheduled').sort(byDateNullsLast)
+    const upcoming = sessions.filter((s) => s.status === 'scheduled').sort(byDate)
     const next = upcoming[0] // the closest unfinished session: the NEXT card and the NEXT tag on the board
     const selected = sessions.find((s) => s.id === pick) ?? next ?? [...sessions].sort(byDate).at(-1)
     const today = dayKey(new Date())
@@ -63,11 +60,7 @@ const CoachSchedule = () => {
     const columns = days.map((day) => ({ day, list: visible.filter((s) => dayKey(s.scheduledAt) === day) }))
     // Summary of the shown week (not affected by the filter).
     const week = sessions.filter((s) => days.includes(dayKey(s.scheduledAt)))
-    // Sessions with no date yet (e.g. right after payment): they can't sit on the week board.
-    const unscheduled = sessions
-      .filter((s) => s.status === 'scheduled' && !s.scheduledAt)
-      .sort((a, b) => a.orderId.localeCompare(b.orderId) || a.sessionNumber - b.sessionNumber)
-    return { orders, next, selected, today, start, columns, total: week.length, unscheduled }
+    return { orders, next, selected, today, start, columns, total: week.length }
   })()
 
   return (
@@ -81,7 +74,7 @@ const CoachSchedule = () => {
         </div>
 
         <div className="mx-auto w-full max-w-[1650px] px-6 pb-6 pt-8 lg:px-8">
-          <PageHeader title="Schedule" sub="Set the date for each session, then mark it as completed." />
+          <PageHeader title="Schedule" sub="Times are picked by players at checkout and fixed. Mark each session as completed." />
           {view ? (
             <>
               {/* Not affected by the filter or the shown week. */}
@@ -99,7 +92,6 @@ const CoachSchedule = () => {
 
               <p className="text-sm text-white/70">
                 {plural(view.total, 'session')} this week
-                {view.unscheduled.length > 0 && <> · <span className="font-semibold text-gold-400">{plural(view.unscheduled.length, 'session')} waiting for schedule</span></>}
               </p>
             </>
           ) : <Async state={state}>{() => null}</Async>}
@@ -112,33 +104,8 @@ const CoachSchedule = () => {
             ? <Empty>No sessions this week.</Empty>
             : <WeekBoard columns={view.columns} orders={view.orders} today={view.today} selectedId={view.selected?.id} nextId={view.next?.id} onSelect={select} />}
 
-          {view.unscheduled.length > 0 && (
-            <section aria-label="Waiting for schedule" className={`${card} mt-6`}>
-              <div className="border-b border-white/10 px-5 py-3">
-                <h2 className="font-display text-lg font-bold uppercase text-white">Waiting for schedule</h2>
-                <p className="text-xs text-white/60">Pick one to set its date. The end is +60 minutes automatically.</p>
-              </div>
-              {view.unscheduled.map((s) => {
-                const o = view.orders.find((x) => x.id === s.orderId)
-                return (
-                  <div key={s.id} className="flex flex-col gap-2 border-b border-white/10 px-5 py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-white">{o?.player.name} · Session {s.sessionNumber}/{s.totalSessions}</p>
-                      <p className="text-xs text-white/60">{o?.id.toUpperCase()} · {o && laneLabel(o.lane)}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-semibold text-gold-400">Waiting for schedule</span>
-                      <button type="button" onClick={() => select(s.id)} className={btn}>Select</button>
-                    </div>
-                  </div>
-                )
-              })}
-            </section>
-          )}
-
           {view.selected && (
-            <SessionDetail s={view.selected} o={view.orders.find((o) => o.id === view.selected.orderId)} onSaved={state.reload}
-              onMoved={(iso) => { setWeekStart(mondayOf(dayKey(iso))); setPick(view.selected.id) }} />
+            <SessionDetail s={view.selected} o={view.orders.find((o) => o.id === view.selected.orderId)} onSaved={state.reload} />
           )}
         </>
       )}

@@ -16,7 +16,7 @@ const NextSessionCard = ({ s, o, today, onView }) => (
           </>
         ) : <p className="mt-2 font-display text-3xl font-bold uppercase text-white">No upcoming sessions</p>}
       </div>
-      {s && <button type="button" onClick={onView} className={btnDark}>{s.scheduledAt ? 'View' : 'Schedule'}</button>}
+      {s && <button type="button" onClick={onView} className={btnDark}>View</button>}
     </div>
   </section>
 )

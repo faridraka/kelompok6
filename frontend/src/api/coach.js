@@ -16,8 +16,6 @@ export const uploadCoachAvatar = (file) => {
   form.append('file', file)
   return uploadRequest('/uploads/avatar', form)
 }
-export const updateCoachSession = (id, body) => (USE_MOCK ? mock.updateSession(id, body) : request(`/sessions/${id}`, { method: 'PUT', body })) // SESS-4
-export const createCoachSchedule = (id, body) => (USE_MOCK ? mock.createSchedule(id, body) : request(`/sessions/${id}/schedule`, { method: 'POST', body })) // SESS-3 (stub: backend creates the Google Calendar event + Meet link; not implemented yet). body: { scheduledAt, scheduledEnd }
 export const completeCoachSession = (id) => (USE_MOCK ? mock.completeSession(id) : request(`/sessions/${id}/complete`, { method: 'PATCH' })) // SESS-5
 export const saveCoachReview = (id, body) => (USE_MOCK ? mock.saveReview(id, body) : request(`/orders/${id}/performance-review`, { method: 'POST', body })) // REV-5
 export const saveCoachRecording = (id, body) => (USE_MOCK ? mock.saveRecording(id, body) : request(`/sessions/${id}/recording`, { method: 'POST', body })) // SESS-6. body: { url }
