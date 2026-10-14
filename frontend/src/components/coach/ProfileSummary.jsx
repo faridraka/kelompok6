@@ -1,10 +1,13 @@
 import { laneLabel } from '../../data/coaches'
+import { DAY_KEYS, countSlots, dayLabel } from '../../data/availability'
 import { card } from './ui'
 import { laneIcon } from './laneIcons'
 
 // Read-only side of the profile page: photo, name, academy, rating and the lanes. Everything comes from the saved profile.
-const ProfileSummary = ({ coach, stats }) => {
+const ProfileSummary = ({ coach, stats, availability }) => {
   const initials = coach.name.split(' ').map((w) => w[0]).join('').slice(0, 2)
+  const total = availability ? countSlots(availability) : 0
+  const activeDays = availability ? DAY_KEYS.filter((k) => (availability[k] ?? []).length) : []
   return (
     <div className={`${card} flex flex-col items-center p-6 text-center`}>
       {coach.avatar
@@ -21,6 +24,25 @@ const ProfileSummary = ({ coach, stats }) => {
           </li>
         ))}
       </ul>
+      {availability && (
+        <div className="mt-5 w-full border-t border-white/10 pt-5 text-left">
+          <p className="text-center font-display text-xs font-semibold uppercase tracking-[0.26em] text-white/70">
+            Available {total} slot{total === 1 ? '' : 's'}/week
+          </p>
+          {activeDays.length ? (
+            <ul className="mt-3 space-y-1.5">
+              {activeDays.map((k) => (
+                <li key={k} className="flex items-baseline justify-between gap-3 text-xs">
+                  <span className="font-semibold uppercase tracking-wide text-white/50">{dayLabel(k).slice(0, 3)}</span>
+                  <span className="text-right font-mono text-white/80">{[...availability[k]].sort().join(', ')}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-center text-xs text-white/40">No hours set yet</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }

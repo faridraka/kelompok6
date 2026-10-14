@@ -3,18 +3,43 @@
 // playerMock.js so the real API can serve both sides with the same JSON.
 // Every date is RELATIVE to now (Jakarta time), so the countdown, the week board and the charts stay alive whenever it is opened.
 import { LANES, generateCoaches } from '../../data/coaches'
+import { emptyAvailability, normalizeAvailability, validateAvailability } from '../../data/availability'
 import { getCoachId } from '../../utils/session'
 import { isHttpUrl } from '../../utils/youtube'
 
 // Seed version. This mock keeps everything in memory, so a reload always loads the current seed. Leftover localStorage keys from an
 // older coach mock (metagames_coach_mock*) are removed here, so old browser data can never mix with this seed or throw.
-const SEED_VERSION = 2
+const SEED_VERSION = 3
 try { Object.keys(localStorage).filter((k) => k.startsWith('metagames_coach_mock') && k !== `metagames_coach_mock_v${SEED_VERSION}`).forEach((k) => localStorage.removeItem(k)) } catch { /* storage blocked: nothing to clean */ }
 
 const wait = (v) => new Promise((r) => setTimeout(() => r(structuredClone(v)), 250))
 // Coach Faros (id 1, lanes from data/coaches.js: gold, mid) and Coach Seemon (id 2, lanes set here: jungle, gold, exp).
 // These two objects are the editable profiles: saveProfile changes them, and every page reads them through getProfile.
 const COACHES = generateCoaches(9).slice(0, 2).map((c) => (c.id === 2 ? { ...c, lanes: ['jungle', 'gold', 'exp'] } : c))
+
+// Demo weekly availability (1-hour sessions, 2-hour break => starts >= 3h apart).
+const seedAvailability = (overrides) => ({ ...emptyAvailability(), ...overrides })
+COACHES.forEach((c) => {
+  c.availability = c.id === 2
+    ? seedAvailability({
+      monday: ['09:00', '13:00', '17:00', '20:00'],
+      tuesday: ['10:00', '14:00', '18:00'],
+      wednesday: ['09:00', '13:00', '17:00', '20:00'],
+      thursday: ['10:00', '14:00', '18:00'],
+      friday: ['09:00', '13:00', '17:00'],
+      saturday: ['10:00', '14:00', '18:00'],
+      sunday: [],
+    })
+    : seedAvailability({
+      monday: ['09:00', '12:00', '15:00', '19:00'],
+      tuesday: [],
+      wednesday: ['09:00', '12:00', '15:00', '19:00'],
+      thursday: [],
+      friday: ['09:00', '12:00', '15:00'],
+      saturday: ['10:00', '13:00', '16:00'],
+      sunday: [],
+    })
+})
 
 // The mock seed only has coaches 1 and 2, but a real backend login returns a UUID.
 // Without this, a backend coach id matches nothing and every coach page renders empty.
@@ -169,6 +194,16 @@ const saveProfile = ({ name, academyLabel, peakRank, mainHero, price, bio, lanes
   return wait(Object.assign(m, { name: name.trim(), academyLabel, peakRank, mainHero, price, bio, lanes: [...lanes], avatar: avatar ?? m.avatar ?? null }))
 }
 
+// Saves the weekly availability. Same 1h session + 2h break rule as the form.
+const saveAvailability = (availability) => {
+  const next = normalizeAvailability(availability)
+  const err = validateAvailability(next)
+  if (err) throw new Error(err)
+  const m = me()
+  m.availability = next
+  return wait(next)
+}
+
 // AVA-1 stub: simulates object storage (R2). Returns a data URL so the mock avatar displays.
 const uploadAvatar = (file) => new Promise((resolve, reject) => {
   if (!file) return reject(new Error('Pick an image file.'))
@@ -182,6 +217,8 @@ const uploadAvatar = (file) => new Promise((resolve, reject) => {
 export const mock = {
   getProfile: () => wait(me()),
   saveProfile,
+  getAvailability: () => wait(structuredClone(me().availability ?? emptyAvailability())),
+  saveAvailability,
   getOrders: () => wait(myOrders()),
   getSessions: () => wait(mySessions()),
   getRatings: () => wait(ratings()),

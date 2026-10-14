@@ -1,5 +1,6 @@
 import testAvatar1 from '../assets/coaches/faros.png'
 import testAvatar2 from '../assets/coaches/aruya.png'
+import { emptyAvailability } from './availability'
 
 export const LANES = [
   { key: 'gold', label: 'Gold Lane' },
@@ -52,5 +53,5 @@ export const generateCoaches = (count = 9) =>
     const base = DUMMY_COACHES[i % DUMMY_COACHES.length]
     const primary = LANES[i % LANES.length].key
     const secondary = LANES[(i + 2) % LANES.length].key
-    return { ...base, id: i + 1, lanes: i % 3 === 0 ? [primary, secondary] : [primary] }
+    return { ...base, id: i + 1, lanes: i % 3 === 0 ? [primary, secondary] : [primary], availability: emptyAvailability() }
   })
