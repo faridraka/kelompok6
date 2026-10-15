@@ -8,7 +8,7 @@ import { btn, btnGhost, card, input } from './ui'
 const MAX_LANES = 3
 const BIO_MAX = 300
 const label = 'block text-xs text-white/60'
-const startOf = (c) => ({ name: c.name, academyLabel: c.academyLabel, peakRank: c.peakRank, mainHero: c.mainHero, price: String(c.price), bio: c.bio, lanes: c.lanes })
+const startOf = (c) => ({ name: c.name, peakRank: c.peakRank, mainHero: c.mainHero, price: String(c.price), bio: c.bio, lanes: c.lanes })
 
 // Edit side of the profile page. Save uploads a new avatar first (if picked), then sends the whole form;
 // Reset puts back what is saved.
@@ -48,7 +48,7 @@ const ProfileForm = ({ coach, onSaved }) => {
         avatar = (await uploadCoachAvatar(avatarFile)).url
       }
       setPhase('Saving…')
-      await saveCoachProfile({ name: f.name.trim(), academyLabel: f.academyLabel.trim(), peakRank: f.peakRank.trim(), mainHero: f.mainHero.trim(), price: Number(f.price), bio: f.bio.trim(), lanes: f.lanes, avatar })
+      await saveCoachProfile({ name: f.name.trim(), peakRank: f.peakRank.trim(), mainHero: f.mainHero.trim(), price: Number(f.price), bio: f.bio.trim(), lanes: f.lanes, avatar })
       profileChanged() // the nav chip loads the new name
       await onSaved()
       setAvatarFile(null)
@@ -73,16 +73,13 @@ const ProfileForm = ({ coach, onSaved }) => {
         <input type="text" {...text('name')} />
       </label>
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className={label}>Academy label
-          <input type="text" {...text('academyLabel')} />
-        </label>
         <label className={label}>Peak rank
           <input type="text" {...text('peakRank')} />
         </label>
         <label className={label}>Main hero
           <input type="text" {...text('mainHero')} />
         </label>
-        <label className={label}>Price per package
+        <label className={`${label} sm:col-span-2`}>Price per package
           {/* Digits only; shown as Rp. */}
           <input type="text" inputMode="numeric" value={f.price === '' ? '' : formatIDR(f.price)} onChange={(e) => change({ price: e.target.value.replace(/\D/g, '') })} className={`${input} mt-1`} />
         </label>
