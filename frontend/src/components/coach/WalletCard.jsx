@@ -1,7 +1,7 @@
 import { laneLabel } from '../../data/coaches'
 import { formatIDR } from '../../utils/format'
 import { laneIcon } from './laneIcons'
-import { btn, card } from './ui'
+import { card } from './ui'
 
 // Wallet summary + transactions. Every number comes from getCoachWallet():
 // 1 order = 1 player = a credit of the coach's price (no tax).
@@ -16,13 +16,7 @@ const badge = (status) => status === 'Available'
 
 const WalletCard = ({ wallet, price }) => (
   <section id="wallet" aria-label="Coach wallet" className={`${card} scroll-mt-24 p-6`}>
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <h2 className="font-display text-xl font-bold uppercase text-white">Wallet</h2>
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-white/40">Coming soon</span>
-        <button type="button" disabled className={btn}>Withdraw</button>
-      </div>
-    </div>
+    <h2 className="font-display text-xl font-bold uppercase text-white">Wallet</h2>
 
     <div className="mt-4 flex flex-wrap items-end gap-x-10 gap-y-4">
       <div>
