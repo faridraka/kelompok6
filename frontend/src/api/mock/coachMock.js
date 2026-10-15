@@ -3,18 +3,21 @@
 // playerMock.js so the real API can serve both sides with the same JSON.
 // Every date is RELATIVE to now (Jakarta time), so the countdown, the week board and the charts stay alive whenever it is opened.
 import { LANES, generateCoaches } from '../../data/coaches'
+import { emptyAvailability, normalizeAvailability, validateAvailability } from '../../data/availability'
 import { getCoachId } from '../../utils/session'
 import { isHttpUrl } from '../../utils/youtube'
 
 // Seed version. This mock keeps everything in memory, so a reload always loads the current seed. Leftover localStorage keys from an
 // older coach mock (metagames_coach_mock*) are removed here, so old browser data can never mix with this seed or throw.
-const SEED_VERSION = 2
+const SEED_VERSION = 3
 try { Object.keys(localStorage).filter((k) => k.startsWith('metagames_coach_mock') && k !== `metagames_coach_mock_v${SEED_VERSION}`).forEach((k) => localStorage.removeItem(k)) } catch { /* storage blocked: nothing to clean */ }
 
 const wait = (v) => new Promise((r) => setTimeout(() => r(structuredClone(v)), 250))
 // Coach Faros (id 1, lanes from data/coaches.js: gold, mid) and Coach Seemon (id 2, lanes set here: jungle, gold, exp).
 // These two objects are the editable profiles: saveProfile changes them, and every page reads them through getProfile.
 const COACHES = generateCoaches(9).slice(0, 2).map((c) => (c.id === 2 ? { ...c, lanes: ['jungle', 'gold', 'exp'] } : c))
+// Availability seeds come from generateCoaches (shared with the player side),
+// so the coach profile and the checkout picker start from the same data.
 
 // The mock seed only has coaches 1 and 2, but a real backend login returns a UUID.
 // Without this, a backend coach id matches nothing and every coach page renders empty.
@@ -39,9 +42,7 @@ const s = (id, orderId, n, days, time, status, meetingLink = null, hasVod = fals
   const end = daysFromNow(days, addHour(time))
   return { id, orderId, sessionNumber: n, totalSessions: 3, scheduledAt: at, scheduledEnd: end, status, meetingLink, vod: hasVod ? vod(id) : null, ...(status === 'completed' && { completedAt: at }) }
 }
-// A freshly paid order: no dates yet, the coach schedules them (backend creates the Meet link).
-const su = (id, orderId, n) =>
-  ({ id, orderId, sessionNumber: n, totalSessions: 3, scheduledAt: null, scheduledEnd: null, status: 'scheduled', meetingLink: null, vod: null })
+// A freshly paid order: dates are picked by the player at checkout, links are created with the order.
 const finished = (key, orderId, days, time = '19:00', vods = [true, true, true]) =>
   days.map((day, i) => s(`s${key}-${i + 1}`, orderId, i + 1, day, time, 'completed', null, vods[i]))
 // Order status: scheduled -> in_progress -> awaiting_rating (review sent) -> completed (player rated, review locked).
@@ -61,7 +62,7 @@ const orders = [
   order('ORD-103', 2, 'karltzy', 'jungle', 'in_progress'),
   order('ORD-104', 2, 'Henshin', 'jungle', 'in_progress'),
   order('ORD-105', 2, 'robbyganteng', 'exp', 'scheduled'),
-  order('ORD-106', 2, 'bagas_', 'gold', 'scheduled'), // freshly paid: waiting for schedule
+  order('ORD-106', 2, 'bagas_', 'gold', 'scheduled'), // freshly paid: dates picked at checkout
   // Coach Faros (lanes from data/coaches.js: gold, mid): 1 in sessions, 1 review due, 1 rated.
   order('ORD-201', 1, 'dimzz', 'mid', 'completed', rated(5, 'Trading di lane jadi lebih berani dan terukur, thanks coach.', -12),
     review('Trading di lane sudah bagus dan timing fight tepat. Masih sering overextend saat jungler lawan tidak terlihat.', ['Trading di lane', 'Timing fight'], ['Overextend tanpa vision'], 'Pasang ward di river sebelum push dan pantau posisi jungler lawan.')),
@@ -75,19 +76,19 @@ const sessions = [
   ...finished('103', 'ORD-103', [-18, -11, -5], '19:00', [true, true, false]), // session 3 has no recording yet, review not written
   s('s104-1', 'ORD-104', 1, -4, '19:00', 'completed'), // no recording
   s('s104-2', 'ORD-104', 2, 3, '19:00', 'scheduled', LINK),
-  s('s104-3', 'ORD-104', 3, 6, '16:00', 'scheduled'),
-  s('s105-1', 'ORD-105', 1, 1, '18:00', 'scheduled'), // the NEXT session on the dashboard
-  s('s105-2', 'ORD-105', 2, 5, '19:00', 'scheduled'),
-  s('s105-3', 'ORD-105', 3, 12, '19:00', 'scheduled'),
-  su('s106-1', 'ORD-106', 1),
-  su('s106-2', 'ORD-106', 2),
-  su('s106-3', 'ORD-106', 3),
+  s('s104-3', 'ORD-104', 3, 6, '16:00', 'scheduled', LINK),
+  s('s105-1', 'ORD-105', 1, 1, '18:00', 'scheduled', LINK), // the NEXT session on the dashboard
+  s('s105-2', 'ORD-105', 2, 5, '19:00', 'scheduled', LINK),
+  s('s105-3', 'ORD-105', 3, 12, '19:00', 'scheduled', LINK),
+  s('s106-1', 'ORD-106', 1, 2, '19:00', 'scheduled', LINK),
+  s('s106-2', 'ORD-106', 2, 6, '19:00', 'scheduled', LINK),
+  s('s106-3', 'ORD-106', 3, 9, '16:00', 'scheduled', LINK),
   // Faros
   ...finished('201', 'ORD-201', [-34, -27, -20]),
   ...finished('202', 'ORD-202', [-12, -8, -3], '20:00'), // review due
   s('s203-1', 'ORD-203', 1, -2, '19:00', 'completed', null, true),
   s('s203-2', 'ORD-203', 2, 1, '20:00', 'scheduled', LINK),
-  s('s203-3', 'ORD-203', 3, 4, '19:00', 'scheduled'),
+  s('s203-3', 'ORD-203', 3, 4, '19:00', 'scheduled', LINK),
 ]
 // Ratings from players who are no longer in the order list, spread from about -175 to -35 days, scores climbing over time.
 // The Rating trend only draws the last 6 calendar months, so the oldest one or two count in the average but not in the chart.
@@ -160,14 +161,23 @@ const saveRecording = (sessionId, { url }) => {
 }
 
 // Saves the profile fields the coach may edit (the rating and id are not editable). Same rules as the form.
-const saveProfile = ({ name, academyLabel, peakRank, mainHero, price, bio, lanes, avatar, discordUsername }) => {
+const saveProfile = ({ name, academyLabel, peakRank, mainHero, price, bio, lanes, avatar }) => {
   if (!String(name ?? '').trim()) throw new Error('Enter a display name.')
   if (!Number.isFinite(price) || price < 0) throw new Error('Enter a price (0 or more).')
   if (String(bio ?? '').length > 300) throw new Error('Bio must be 300 characters or less.')
   if (!lanes?.length || lanes.length > 3 || lanes.some((l) => !LANES.some((x) => x.key === l))) throw new Error('Pick 1 to 3 lanes.')
-  if (!String(discordUsername ?? '').trim()) throw new Error('Enter your Discord username.')
   const m = me()
-  return wait(Object.assign(m, { name: name.trim(), academyLabel, peakRank, mainHero, price, bio, lanes: [...lanes], avatar: avatar ?? m.avatar ?? null, discordUsername: discordUsername.trim() }))
+  return wait(Object.assign(m, { name: name.trim(), academyLabel, peakRank, mainHero, price, bio, lanes: [...lanes], avatar: avatar ?? m.avatar ?? null }))
+}
+
+// Saves the weekly availability. Same 1h session + 2h break rule as the form.
+const saveAvailability = (availability) => {
+  const next = normalizeAvailability(availability)
+  const err = validateAvailability(next)
+  if (err) throw new Error(err)
+  const m = me()
+  m.availability = next
+  return wait(next)
 }
 
 // AVA-1 stub: simulates object storage (R2). Returns a data URL so the mock avatar displays.
@@ -183,6 +193,8 @@ const uploadAvatar = (file) => new Promise((resolve, reject) => {
 export const mock = {
   getProfile: () => wait(me()),
   saveProfile,
+  getAvailability: () => wait(structuredClone(me().availability ?? emptyAvailability())),
+  saveAvailability,
   getOrders: () => wait(myOrders()),
   getSessions: () => wait(mySessions()),
   getRatings: () => wait(ratings()),
@@ -190,25 +202,8 @@ export const mock = {
   saveRecording,
   uploadVod,
   uploadAvatar,
-  updateSession: (id, { scheduledAt, scheduledEnd, meetingLink }) => {
-    const s = mine(id)
-    if (s.status === 'completed') throw new Error('Completed sessions cannot be edited')
-    Object.assign(s, { scheduledAt, scheduledEnd: scheduledEnd ?? s.scheduledEnd ?? null, meetingLink })
-    return wait(s)
-  },
-  // SESS-3 stub: the real backend creates the Google Calendar event + Meet link.
-  // Mock simulates it with a placeholder link so the player join flow stays testable.
-  createSchedule: (id, { scheduledAt, scheduledEnd }) => {
-    const s = mine(id)
-    if (s.status === 'completed') throw new Error('Completed sessions cannot be edited')
-    if (s.scheduledAt) throw new Error('Session already scheduled')
-    if (!scheduledAt || !scheduledEnd) throw new Error('Pick a start time.')
-    Object.assign(s, { scheduledAt, scheduledEnd, meetingLink: `https://meet.google.com/mock-${String(s.id).toLowerCase()}` })
-    return wait(s)
-  },
   completeSession: (id) => {
     const s = mine(id)
-    if (!s.scheduledAt) throw new Error('Schedule the session first')
     if (!s.scheduledEnd || new Date(s.scheduledEnd).getTime() > Date.now()) throw new Error('Session has not ended yet')
     s.status = 'completed'
     s.completedAt = new Date().toISOString()

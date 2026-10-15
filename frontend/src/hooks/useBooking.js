@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { getCoach } from '../api/coaches'
 import { getSession } from '../utils/session'
 
-//These are shared by cart and checkout, also forces player to choose one lane only yay
+// Shared by the checkout page: loads the coach and forces the player to choose one lane only yay
 export const useBooking = () => {
   const [params, setParams] = useSearchParams()
   const location = useLocation()

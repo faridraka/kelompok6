@@ -25,14 +25,10 @@ const SessionRow = ({ s, timezone, onDone }) => {
     <div className="flex flex-col gap-3 border-b border-white/10 px-6 py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="text-sm font-semibold text-white">Session {s.sessionNumber}/{s.totalSessions}</p>
-        {s.status === 'completed' ? (
-          s.scheduledAt && <p className="text-sm text-white/60">{fmtRange(s.scheduledAt, s.scheduledEnd, timezone)}</p>
-        ) : s.meetingLink ? (
-          s.scheduledAt && <p className="text-sm text-white/60">{fmtRange(s.scheduledAt, s.scheduledEnd, timezone)}</p>
-        ) : null}
+        <p className="text-sm text-white/60">{fmtRange(s.scheduledAt, s.scheduledEnd, timezone)}</p>
       </div>
       {s.status === 'completed' ? <span className="text-sm font-semibold text-cyan-glow">Completed</span>
-        : s.meetingLink ? (
+        : (
           <div className="flex flex-col items-start gap-2 sm:items-end">
             <div className="flex gap-2">
               <a href={s.meetingLink} target="_blank" rel="noopener noreferrer" className={btn}>Join meeting</a>
@@ -41,8 +37,7 @@ const SessionRow = ({ s, timezone, onDone }) => {
             {!ended && <p className="text-xs text-white/50">Available after the session ends</p>}
             {error && <p className="text-xs text-gold-400">{error}</p>}
           </div>
-        )
-        : <span className="text-sm text-gold-400">Waiting for schedule</span>}
+        )}
     </div>
   )
 }
@@ -52,7 +47,7 @@ const PlayerSessions = () => {
   const [filter, setFilter] = useState('all')
   return (
     <>
-      <PageHeader title="Sessions" sub="Your live sessions with your coaches. Your coach schedules and reschedules them." />
+      <PageHeader title="Sessions" sub="Your live sessions with your coaches. Times are picked by you at checkout and fixed." />
       <div className="mb-8 flex flex-wrap gap-2">{FILTERS.map(([k, l]) => <Pill key={k} active={filter === k} onClick={() => setFilter(k)}>{l}</Pill>)}</div>
       <Async state={state}>
         {({ orders, sessions, me }) => {

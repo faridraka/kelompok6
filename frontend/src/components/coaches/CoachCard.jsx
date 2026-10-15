@@ -12,8 +12,8 @@ const CoachCard = ({ coach }) => {
     { label: 'Main Hero', value: coach.mainHero },
   ]
 
-  // Book -> /cart. The player picks their lane on the cart page.
-  const book = () => navigate(`/cart?coach=${coach.id}`)
+  // Book -> /checkout. The player picks lane + 3 schedules on the checkout page.
+  const book = () => navigate(`/checkout?coach=${coach.id}`)
 
   return (
     <article className="flex flex-col gap-6 border border-white/10 bg-royal-600 p-6">

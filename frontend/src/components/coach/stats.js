@@ -36,17 +36,6 @@ const utcDay = (s) => { const [y, m, d] = s.split('-').map(Number); return new D
 const mondayOf = (s) => { const d = utcDay(s); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); return d }
 const utcLabel = (d, opts) => d.toLocaleDateString('en-US', { timeZone: 'UTC', ...opts })
 
-// Average rating per month for the last `n` months (this month included), by ratedAt. avg = null when a month has no ratings.
-export const monthlyRatings = (ratings, n = 6) => {
-  const [y, m] = ymd(new Date()).split('-').map(Number)
-  return Array.from({ length: n }, (_, i) => {
-    const first = new Date(Date.UTC(y, m - 1 - (n - 1 - i), 1))
-    const key = first.toISOString().slice(0, 7)
-    const scores = ratings.filter((r) => r.ratedAt && ymd(r.ratedAt).slice(0, 7) === key).map((r) => r.rating)
-    return { key, label: utcLabel(first, { month: 'short' }), n: scores.length, avg: scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : null }
-  })
-}
-
 // Completed sessions per week (Monday to Sunday) for the last `n` weeks (this week included), by completedAt.
 export const weeklyCompleted = (sessions, n = 6) => {
   const thisMonday = mondayOf(ymd(new Date()))
@@ -63,8 +52,3 @@ export const weeklyCompleted = (sessions, n = 6) => {
     return { key: start.toISOString().slice(0, 10), label: utcLabel(start, { month: 'short', day: 'numeric' }), count }
   })
 }
-
-// The coach's own lanes (from the profile, max 3) with their player count, most players first.
-// A lane the coach does not have is never shown, even if an old order used it.
-export const laneCounts = (orders, lanes, max = 3) =>
-  lanes.slice(0, max).map((lane) => ({ lane, count: orders.filter((o) => o.lane === lane).length })).sort((a, b) => b.count - a.count)

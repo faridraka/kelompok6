@@ -40,7 +40,7 @@ const refreshRoute = createRoute({
   method: 'post',
   path: '/refresh',
   tags: ['Authentication'],
-  summary: 'Perbarui access token',
+  summary: 'Refresh Access Token',
   description: 'Endpoint untuk memperbarui access token menggunakan refresh token',
   request: {
     body: { required: true, content: { 'application/json': { schema: RefreshBody } } },
