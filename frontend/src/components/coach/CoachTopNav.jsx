@@ -78,6 +78,8 @@ const CoachTopNav = () => {
   const isActive = (to) => location.pathname === to
   const closeMobile = () => setMobileOpen(false)
   const closeProfile = () => setProfileOpen(false)
+  // The wallet is a section on the profile page: navigate there, then scroll to it (covers already being on the page).
+  const goToWallet = () => { closeProfile(); setTimeout(() => document.getElementById('wallet')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }
 
   const handleLogout = () => {
     clearSession()
@@ -143,6 +145,13 @@ const CoachTopNav = () => {
                 >
                   <AvatarBadge name={user?.name} className="h-6 w-6" />
                   Profile
+                </Link>
+                <Link
+                  to={`${PROFILE_PATH}#wallet`}
+                  onClick={goToWallet}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white/70 hover:bg-white/10 hover:text-white"
+                >
+                  Wallet
                 </Link>
                 <button
                   type="button"
