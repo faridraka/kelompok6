@@ -4,6 +4,7 @@
 // Every date is RELATIVE to now (Jakarta time), so the countdown, the week board and the charts stay alive whenever it is opened.
 import { LANES, generateCoaches } from '../../data/coaches'
 import { emptyAvailability, normalizeAvailability, validateAvailability } from '../../data/availability'
+import { buildWallet } from '../../components/coach/wallet'
 import { getCoachId } from '../../utils/session'
 import { isHttpUrl } from '../../utils/youtube'
 
@@ -46,8 +47,9 @@ const s = (id, orderId, n, days, time, status, meetingLink = null, hasVod = fals
 const finished = (key, orderId, days, time = '19:00', vods = [true, true, true]) =>
   days.map((day, i) => s(`s${key}-${i + 1}`, orderId, i + 1, day, time, 'completed', null, vods[i]))
 // Order status: scheduled -> in_progress -> awaiting_rating (review sent) -> completed (player rated, review locked).
-const order = (id, coachId, name, lane, status, rating = null, performanceReview = null) =>
-  ({ id, coachId, player: { name }, lane, status, totalSessions: 3, performanceReview, rating })
+// createdAt is relative (like sessions) so wallet transactions stay dated and sorted newest first.
+const order = (id, coachId, name, lane, status, rating = null, performanceReview = null, createdDaysAgo = 0) =>
+  ({ id, coachId, player: { name }, lane, status, totalSessions: 3, performanceReview, rating, createdAt: daysFromNow(createdDaysAgo, '12:00') })
 const review = (notes, strengths, weaknesses, recommendation) => ({ notes, strengths, weaknesses, recommendation })
 const rated = (score, text, daysAgo) => ({ rating: score, review: text, ratedAt: daysFromNow(daysAgo, '12:00') })
 const past = (playerNickname, rating, comment, days) => ({ playerNickname, rating, comment, ratedAt: daysFromNow(days, '12:00') })
@@ -56,18 +58,18 @@ const LINK = 'https://meet.google.com/new'
 const orders = [
   // Coach Seemon (lanes: jungle, gold, exp): 2 in sessions, 1 review due, 1 awaiting rating, 1 rated.
   order('ORD-101', 2, 'aslarant', 'exp', 'completed', rated(5, 'Rotasinya jadi jauh lebih rapi, makasih coach.', -20),
-    review('Baca draft sudah bagus dan rotasi tepat waktu. Manajemen cooldown skill masih turun saat team fight panjang.', ['Baca draft', 'Rotasi tepat waktu'], ['Manajemen cooldown skill'], 'Hitung ultimate lawan sebelum memutuskan untuk engage.')),
+    review('Baca draft sudah bagus dan rotasi tepat waktu. Manajemen cooldown skill masih turun saat team fight panjang.', ['Baca draft', 'Rotasi tepat waktu'], ['Manajemen cooldown skill'], 'Hitung ultimate lawan sebelum memutuskan untuk engage.'), -45),
   order('ORD-102', 2, 'kinakina', 'gold', 'awaiting_rating', null,
-    review('Laning kuat dan damage output stabil. Rotasi setelah turret pertama masih telat dan posisi saat team fight perlu dirapikan.', ['Laning kuat', 'Damage output stabil'], ['Timing rotasi setelah turret pertama', 'Positioning di team fight'], 'Catat tiap rotasi yang telat di ranked, lalu review bareng di sesi berikutnya.')),
-  order('ORD-103', 2, 'karltzy', 'jungle', 'in_progress'),
-  order('ORD-104', 2, 'Henshin', 'jungle', 'in_progress'),
-  order('ORD-105', 2, 'robbyganteng', 'exp', 'scheduled'),
-  order('ORD-106', 2, 'bagas_', 'gold', 'scheduled'), // freshly paid: dates picked at checkout
+    review('Laning kuat dan damage output stabil. Rotasi setelah turret pertama masih telat dan posisi saat team fight perlu dirapikan.', ['Laning kuat', 'Damage output stabil'], ['Timing rotasi setelah turret pertama', 'Positioning di team fight'], 'Catat tiap rotasi yang telat di ranked, lalu review bareng di sesi berikutnya.'), -35),
+  order('ORD-103', 2, 'karltzy', 'jungle', 'in_progress', null, null, -20),
+  order('ORD-104', 2, 'Henshin', 'jungle', 'in_progress', null, null, -6),
+  order('ORD-105', 2, 'robbyganteng', 'exp', 'scheduled', null, null, -2),
+  order('ORD-106', 2, 'bagas_', 'gold', 'scheduled', null, null, -1), // freshly paid: dates picked at checkout
   // Coach Faros (lanes from data/coaches.js: gold, mid): 1 in sessions, 1 review due, 1 rated.
   order('ORD-201', 1, 'dimzz', 'mid', 'completed', rated(5, 'Trading di lane jadi lebih berani dan terukur, thanks coach.', -12),
-    review('Trading di lane sudah bagus dan timing fight tepat. Masih sering overextend saat jungler lawan tidak terlihat.', ['Trading di lane', 'Timing fight'], ['Overextend tanpa vision'], 'Pasang ward di river sebelum push dan pantau posisi jungler lawan.')),
-  order('ORD-202', 1, 'salsaplay', 'gold', 'in_progress'),
-  order('ORD-203', 1, 'gilangmid', 'mid', 'in_progress'),
+    review('Trading di lane sudah bagus dan timing fight tepat. Masih sering overextend saat jungler lawan tidak terlihat.', ['Trading di lane', 'Timing fight'], ['Overextend tanpa vision'], 'Pasang ward di river sebelum push dan pantau posisi jungler lawan.'), -38),
+  order('ORD-202', 1, 'salsaplay', 'gold', 'in_progress', null, null, -14),
+  order('ORD-203', 1, 'gilangmid', 'mid', 'in_progress', null, null, -4),
 ]
 const sessions = [
   // Seemon
@@ -118,6 +120,9 @@ const ratingHistory = {
 const myOrders = () => orders.filter((o) => o.coachId === coachId())
 const mySessions = () => { const ids = myOrders().map((o) => o.id); return sessions.filter((x) => ids.includes(x.orderId)) }
 
+// Wallet: 1 order = 1 player = a credit of the coach's price (no tax). 'completed' -> Available, else Pending.
+const wallet = () => buildWallet(myOrders(), me().price)
+
 // One source for every rating number: the history above plus the rating on each rated order. Newest first.
 const ratings = () => [
   ...(ratingHistory[coachId()] ?? []),
@@ -161,13 +166,13 @@ const saveRecording = (sessionId, { url }) => {
 }
 
 // Saves the profile fields the coach may edit (the rating and id are not editable). Same rules as the form.
-const saveProfile = ({ name, academyLabel, peakRank, mainHero, price, bio, lanes, avatar }) => {
+const saveProfile = ({ name, peakRank, mainHero, price, bio, lanes, avatar }) => {
   if (!String(name ?? '').trim()) throw new Error('Enter a display name.')
   if (!Number.isFinite(price) || price < 0) throw new Error('Enter a price (0 or more).')
   if (String(bio ?? '').length > 300) throw new Error('Bio must be 300 characters or less.')
   if (!lanes?.length || lanes.length > 3 || lanes.some((l) => !LANES.some((x) => x.key === l))) throw new Error('Pick 1 to 3 lanes.')
   const m = me()
-  return wait(Object.assign(m, { name: name.trim(), academyLabel, peakRank, mainHero, price, bio, lanes: [...lanes], avatar: avatar ?? m.avatar ?? null }))
+  return wait(Object.assign(m, { name: name.trim(), peakRank, mainHero, price, bio, lanes: [...lanes], avatar: avatar ?? m.avatar ?? null }))
 }
 
 // Saves the weekly availability. Same 1h session + 2h break rule as the form.
@@ -198,6 +203,7 @@ export const mock = {
   getOrders: () => wait(myOrders()),
   getSessions: () => wait(mySessions()),
   getRatings: () => wait(ratings()),
+  getWallet: () => wait(wallet()),
   saveReview,
   saveRecording,
   uploadVod,
