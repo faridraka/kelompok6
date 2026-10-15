@@ -6,7 +6,8 @@ export const getCoachProfile = () => (USE_MOCK ? mock.getProfile() : request('/u
 export const getCoachOrders = () => (USE_MOCK ? mock.getOrders() : request('/orders'))       // ORD-2
 export const getCoachSessions = () => (USE_MOCK ? mock.getSessions() : request('/sessions')) // SESS-1
 export const getCoachRatings = () => (USE_MOCK ? mock.getRatings() : request('/ratings'))     // all ratings: [{ playerNickname, rating, comment, ratedAt }] newest first. TODO: confirm the endpoint in the API design
-export const saveCoachProfile = (body) => (USE_MOCK ? mock.saveProfile(body) : request('/users/me', { method: 'PUT', body })) // body: { name, academyLabel, peakRank, mainHero, price, bio, lanes[], avatar }. TODO: confirm the endpoint in the API design
+export const getCoachWallet = () => (USE_MOCK ? mock.getWallet() : request('/wallet')) // -> { available, pending, totalEarned, players, transactions[] }. TODO: confirm the endpoint in the API design
+export const saveCoachProfile = (body) => (USE_MOCK ? mock.saveProfile(body) : request('/users/me', { method: 'PUT', body })) // body: { name, peakRank, mainHero, price, bio, lanes[], avatar }. TODO: confirm the endpoint in the API design
 export const getCoachAvailability = () => (USE_MOCK ? mock.getAvailability() : request('/users/me/availability')) // AVAIL-1. -> { monday: ['09:00'], ... sunday: [] }. TODO: confirm the endpoint in the API design
 export const saveCoachAvailability = (body) => (USE_MOCK ? mock.saveAvailability(body) : request('/users/me/availability', { method: 'PUT', body })) // AVAIL-2. body = same shape. TODO: confirm the endpoint in the API design
 // AVA-1  POST /uploads/avatar (multipart file) -> { url }. Backend stores the file in object storage (R2).

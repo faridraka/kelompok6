@@ -8,10 +8,10 @@ import iconJungle from '../../assets/roles/role-jungle.png'
 import iconRoam from '../../assets/roles/role-roam.png'
 
 const ICON = { gold: iconGold, exp: iconExp, mid: iconMid, jungle: iconJungle, roam: iconRoam }
-const COLUMNS = [['sessions', 'In sessions'], ['due', 'Review due'], ['awaiting', 'Awaiting rating'], ['rated', 'Rated']]
+const COLUMNS = [['sessions', 'In sessions'], ['due', 'Review due'], ['awaiting', 'Awaiting review'], ['rated', 'Reviewed']]
 const byDate = (a, b) => a.scheduledAt.localeCompare(b.scheduledAt)
 
-// What a card says and where it goes. Gold = needs action, cyan = rated.
+// What a card says and where it goes. Gold = needs action, cyan = reviewed.
 const cardInfo = (stage, o, list) => {
   const all = `${o.totalSessions}/${o.totalSessions} sessions`
   const reviews = `/coach/reviews?order=${o.id}`

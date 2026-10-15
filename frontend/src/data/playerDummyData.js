@@ -63,13 +63,6 @@ export const transactionHistory = [
     status: 'completed',
     type: 'payment',
   },
-  {
-    id: 'TRX-002',
-    date: '2026-09-05',
-    description: 'Top Up Balance',
-    amount: 100000,
-    status: 'completed',
-    type: 'topup',
-  },
+  
 ]
 
