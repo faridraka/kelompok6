@@ -32,7 +32,7 @@ export const reviewController = {
     if (!performanceReview) throw new AppError('Coach belum memberi review', 400)
 
     // 3. Insert rating; rated_at memakai default-nya. order_id adalah PK: duplikat = sudah dirating.
-    const { data: inserted, error: insertError } = await supabaseAdmin
+    const { error: insertError } = await supabaseAdmin
       .from('ratings')
       .insert({ order_id: id, rating, review: review ?? null })
       .select('rating, review, rated_at')
@@ -42,7 +42,7 @@ export const reviewController = {
       throw dbError(insertError)
     }
 
-    return c.json({ rating: inserted.rating, review: inserted.review, ratedAt: inserted.rated_at }, 201)
+    return c.json({ ok: true }, 201)
   },
 
   // POST /orders/:id/performance-review (coach only). Coach menulis/ mengubah performance review.
@@ -78,7 +78,7 @@ export const reviewController = {
 
     // Coach boleh mengubah review sampai player memberi rating: upsert pada order_id.
     // created_at tidak dikirim (memakai default).
-    const { data: saved, error: upsertError } = await supabaseAdmin
+    const { error: upsertError } = await supabaseAdmin
       .from('performance_reviews')
       .upsert(
         { order_id: id, notes, strengths, weaknesses, recommendation: recommendation ?? null },
@@ -88,25 +88,6 @@ export const reviewController = {
       .single()
     if (upsertError) throw dbError(upsertError)
 
-    // Status dibaca ulang setelah upsert (tidak pernah ditulis dari backend).
-    const { data: current, error: currentError } = await supabaseAdmin
-      .from('orders')
-      .select('status')
-      .eq('id', id)
-      .single()
-    if (currentError) throw dbError(currentError)
-
-    return c.json(
-      {
-        performanceReview: {
-          notes: saved.notes,
-          strengths: saved.strengths,
-          weaknesses: saved.weaknesses,
-          recommendation: saved.recommendation,
-        },
-        status: current.status,
-      },
-      200,
-    )
+    return c.json({ ok: true }, 200)
   },
 }

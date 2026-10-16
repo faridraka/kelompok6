@@ -13,9 +13,9 @@ const getMeRoute = createRoute({
   tags: ['Users'],
   summary: 'Profil sendiri',
   description:
-    'Coach: { id, role, name, email, avatar, peakRank, mainHero, price, bio, lanes, availability } ' +
+    'Coach: { id, role, name, email, avatar, peakRank, mainHero, price, bio, lanes, availability, timezone: Asia/Jakarta } ' +
     '(availability selalu 7 kunci hari, waktu terurut). ' +
-    'Player: { id, role, name, email, avatarUrl: null, bio, timezone }. Bentuk JSON mengikuti role di token.',
+    'Player: { id, role, name, email, avatarUrl: null, avatar: null, bio, timezone }. Bentuk JSON mengikuti role di token.',
   middleware: [auth, requireRole('player', 'coach')],
   security: [{ Bearer: [] }],
   responses: {
@@ -31,7 +31,7 @@ const updateMeRoute = createRoute({
   tags: ['Users'],
   summary: 'Ubah profil sendiri',
   description:
-    'Coach: { name, peakRank, mainHero, price, bio, lanes, avatar } ' +
+    'Coach: { name, peakRank, mainHero, price, bio, lanes (1-3 dari gold, exp, mid, jungle, roam), avatar } ' +
     '(name -> profiles, sisanya -> coach_profiles; avatar undefined = tidak diubah). ' +
     'Player: { name } saja. Mengembalikan bentuk yang sama seperti GET.',
   middleware: [auth, requireRole('player', 'coach')],

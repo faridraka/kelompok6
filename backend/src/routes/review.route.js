@@ -23,7 +23,7 @@ const rateOrderRoute = createRoute({
     body: { required: true, content: { 'application/json': { schema: RateOrderBody } } },
   },
   responses: {
-    201: jsonRes(RateOrderResponse, 'Rating berhasil disimpan'),
+    201: jsonRes(RateOrderResponse, '{ ok: true }'),
     400: jsonRes(ErrorSchema('Coach belum memberi review'), 'Order belum menunggu rating / coach belum memberi review'),
     404: jsonRes(ErrorSchema('Order tidak ditemukan'), 'Order tidak ditemukan / bukan milik player ini'),
     409: jsonRes(ErrorSchema('Order sudah dirating'), 'Order sudah dirating'),
@@ -49,7 +49,7 @@ const saveReviewRoute = createRoute({
     body: { required: true, content: { 'application/json': { schema: SaveReviewBody } } },
   },
   responses: {
-    200: jsonRes(SaveReviewResponse, 'Performance review tersimpan'),
+    200: jsonRes(SaveReviewResponse, '{ ok: true }'),
     400: jsonRes(ErrorSchema('Selesaikan semua sesi dulu'), 'Order terkunci / sesi belum semuanya completed'),
     404: jsonRes(ErrorSchema('Order tidak ditemukan'), 'Order tidak ditemukan / bukan milik coach ini'),
     ...authErrors,

@@ -164,11 +164,47 @@ const isBookable = (cp) => cp.price != null && Array.isArray(cp.lanes) && cp.lan
 
 export const coachesController = {
   // GET /coaches (public). Hanya coach yang bisa dipesan (price tidak null dan lanes tidak kosong).
+  // Filter opsional di atasnya: lane (satu / koma, ANY match) dan search (substring nama/mainHero).
   list: async (c) => {
+    const { lane, search } = c.req.valid('query')
+
     const { data, error } = await supabaseAdmin.from('coach_profiles').select(COACH_SELECT)
     if (error) throw dbError(error)
 
-    return c.json(await loadCards((data ?? []).filter(isBookable)), 200)
+    let cards = await loadCards((data ?? []).filter(isBookable))
+
+    if (lane !== undefined && lane.trim() !== '') {
+      const allowed = ['gold', 'exp', 'mid', 'jungle', 'roam']
+      const wanted = lane
+        .split(',')
+        .map((part) => part.trim())
+        .filter((part) => part !== '')
+      const invalid = wanted.filter((part) => !allowed.includes(part))
+      if (invalid.length > 0) {
+        throw new AppError(
+          `Lane tidak valid: ${invalid.join(', ')}. Pilih salah satu dari gold, exp, mid, jungle, roam`,
+          422,
+        )
+      }
+      if (wanted.length > 0) {
+        cards = cards.filter((card) => wanted.some((w) => (card.lanes ?? []).includes(w)))
+      }
+    }
+
+    const q = (search ?? '').trim().toLowerCase()
+    if (q !== '') {
+      cards = cards.filter(
+        (card) =>
+          String(card.name ?? '')
+            .toLowerCase()
+            .includes(q) ||
+          String(card.mainHero ?? '')
+            .toLowerCase()
+            .includes(q),
+      )
+    }
+
+    return c.json(cards, 200)
   },
 
   // GET /coaches/:id (public).

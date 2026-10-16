@@ -34,6 +34,7 @@ const formatPlayer = (user, profile) => ({
   name: profile.name,
   email: user.email,
   avatarUrl: null,
+  avatar: null,
   bio: '',
   timezone: 'Asia/Jakarta',
 })
@@ -50,6 +51,7 @@ const formatCoach = (user, profile, coachProfile, availability) => ({
   bio: coachProfile.bio ?? null,
   lanes: coachProfile.lanes ?? [],
   availability,
+  timezone: 'Asia/Jakarta',
 })
 
 // Reads everything GET and PUT need. Never selects academy_label.

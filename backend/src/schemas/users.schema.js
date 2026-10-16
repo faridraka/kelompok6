@@ -32,6 +32,7 @@ export const CoachMeSchema = z
     bio: z.string().nullable().openapi({ example: 'Head Coach...' }),
     lanes: z.array(LaneEnum).openapi({ example: ['mid'] }),
     availability: CoachAvailabilitySchema,
+    timezone: z.literal('Asia/Jakarta'),
   })
   .openapi('CoachMe')
 
@@ -42,6 +43,7 @@ export const PlayerMeSchema = z
     name: z.string().openapi({ example: 'Budi' }),
     email: z.string().email().openapi({ example: 'budi@mail.com' }),
     avatarUrl: z.null().openapi({ example: null }),
+    avatar: z.null().openapi({ example: null }),
     bio: z.string().openapi({ example: '' }),
     timezone: z.literal('Asia/Jakarta'),
   })
@@ -57,7 +59,7 @@ export const UpdateCoachMeBody = z
     mainHero: z.string().openapi({ example: 'Ling' }),
     price: z.number().int().min(0).openapi({ example: 400000 }),
     bio: z.string().max(300).openapi({ example: 'Head Coach...' }),
-    lanes: z.array(LaneEnum).min(1).openapi({ example: ['mid'] }),
+    lanes: z.array(LaneEnum).min(1).max(3).openapi({ example: ['mid'] }),
     avatar: z.string().url().nullable().optional().openapi({ example: null }),
   })
   .openapi('UpdateCoachMeBody')

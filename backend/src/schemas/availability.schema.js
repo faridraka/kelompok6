@@ -47,3 +47,7 @@ export const AvailabilityBody = z
     }
   })
   .openapi('AvailabilityBody')
+
+export const AvailabilityOkResponse = z
+  .object({ ok: z.literal(true).openapi({ example: true }) })
+  .openapi('AvailabilityOk')

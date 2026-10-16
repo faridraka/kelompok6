@@ -12,11 +12,7 @@ export const RateOrderBody = z
   .openapi('RateOrderBody')
 
 export const RateOrderResponse = z
-  .object({
-    rating: z.number().int().min(1).max(5).openapi({ example: 5 }),
-    review: z.string().nullable().openapi({ example: 'Rotasinya jadi jauh lebih rapi, makasih coach.' }),
-    ratedAt: z.string().nullable().openapi({ example: '2026-09-20T12:00:00+07:00' }),
-  })
+  .object({ ok: z.literal(true).openapi({ example: true }) })
   .openapi('RateOrderResponse')
 
 export const SaveReviewBody = z
@@ -38,8 +34,5 @@ export const PerformanceReviewSchema = z
   .openapi('PerformanceReview')
 
 export const SaveReviewResponse = z
-  .object({
-    performanceReview: PerformanceReviewSchema,
-    status: z.string().openapi({ example: 'awaiting_rating' }),
-  })
+  .object({ ok: z.literal(true).openapi({ example: true }) })
   .openapi('SaveReviewResponse')

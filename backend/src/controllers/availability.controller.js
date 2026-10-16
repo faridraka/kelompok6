@@ -107,7 +107,7 @@ export const availabilityController = {
     }
 
     // Minggu kosong: tidak ada yang perlu di-insert.
-    if (nextRows.length === 0) return c.json(emptyAvailability(), 200)
+    if (nextRows.length === 0) return c.json({ ok: true }, 200)
 
     const { error: insertError } = await supabaseAdmin.from('coach_availability').insert(nextRows)
     if (insertError) {
@@ -124,6 +124,6 @@ export const availabilityController = {
       throw dbError(insertError)
     }
 
-    return c.json(buildAvailability(nextRows), 200)
+    return c.json({ ok: true }, 200)
   },
 }
