@@ -8,6 +8,7 @@ import usersRoutes from './users.route.js'
 import availabilityRoutes from './availability.route.js'
 import coachesRoutes from './coaches.route.js'
 import ratingsRoutes from './ratings.route.js'
+import reviewRoutes from './review.route.js'
 
 const routes = new OpenAPIHono()
 
@@ -16,6 +17,7 @@ routes.route('/auth', authRoutes)
 routes.route('/sessions', sessionRoutes)
 routes.route('/uploads', uploadRoutes)
 routes.route('/orders', orderRoutes)
+routes.route('/orders', reviewRoutes)
 routes.route('/users', usersRoutes)
 routes.route('/users', availabilityRoutes)
 routes.route('/coaches', coachesRoutes)
