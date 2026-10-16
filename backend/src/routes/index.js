@@ -4,6 +4,7 @@ import authRoutes from './auth.route.js'
 import sessionRoutes from './session.route.js'
 import uploadRoutes from './upload.route.js'
 import orderRoutes from './order.route.js'
+import paymentRoutes from './payment.route.js'
 
 const routes = new OpenAPIHono()
 
@@ -12,5 +13,6 @@ routes.route('/auth', authRoutes)
 routes.route('/sessions', sessionRoutes)
 routes.route('/uploads', uploadRoutes)
 routes.route('/orders', orderRoutes)
+routes.route('/', paymentRoutes)
 
 export default routes
