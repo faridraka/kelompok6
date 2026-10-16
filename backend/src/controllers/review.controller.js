@@ -44,4 +44,69 @@ export const reviewController = {
 
     return c.json({ rating: inserted.rating, review: inserted.review, ratedAt: inserted.rated_at }, 201)
   },
+
+  // POST /orders/:id/performance-review (coach only). Coach menulis/ mengubah performance review.
+  // orders.status TIDAK pernah diubah dari backend; DB sudah memindahkannya ke awaiting_rating
+  // saat semua sesi selesai.
+  savePerformanceReview: async (c) => {
+    const user = c.get('user')
+    const { id } = c.req.valid('param')
+    const { notes, strengths, weaknesses, recommendation } = c.req.valid('json')
+
+    // 1. Order harus milik coach yang login. Order coach lain = "tidak ditemukan".
+    const { data: order, error: orderError } = await supabaseAdmin
+      .from('orders')
+      .select('id, status')
+      .eq('id', id)
+      .eq('coach_id', user.id)
+      .maybeSingle()
+    if (orderError) throw dbError(orderError)
+    if (!order) throw new AppError('Order tidak ditemukan', 404)
+
+    // 2. Order yang sudah completed terkunci: player sudah memberi rating.
+    if (order.status === 'completed') throw new AppError('Terkunci, player sudah memberi rating', 400)
+
+    // 3. Semua sesi order harus sudah completed.
+    const { data: sessions, error: sessionsError } = await supabaseAdmin
+      .from('sessions')
+      .select('id, status')
+      .eq('order_id', id)
+    if (sessionsError) throw dbError(sessionsError)
+    if (!sessions?.length || sessions.some((s) => s.status !== 'completed')) {
+      throw new AppError('Selesaikan semua sesi dulu', 400)
+    }
+
+    // Coach boleh mengubah review sampai player memberi rating: upsert pada order_id.
+    // created_at tidak dikirim (memakai default).
+    const { data: saved, error: upsertError } = await supabaseAdmin
+      .from('performance_reviews')
+      .upsert(
+        { order_id: id, notes, strengths, weaknesses, recommendation: recommendation ?? null },
+        { onConflict: 'order_id' },
+      )
+      .select('notes, strengths, weaknesses, recommendation')
+      .single()
+    if (upsertError) throw dbError(upsertError)
+
+    // Status dibaca ulang setelah upsert (tidak pernah ditulis dari backend).
+    const { data: current, error: currentError } = await supabaseAdmin
+      .from('orders')
+      .select('status')
+      .eq('id', id)
+      .single()
+    if (currentError) throw dbError(currentError)
+
+    return c.json(
+      {
+        performanceReview: {
+          notes: saved.notes,
+          strengths: saved.strengths,
+          weaknesses: saved.weaknesses,
+          recommendation: saved.recommendation,
+        },
+        status: current.status,
+      },
+      200,
+    )
+  },
 }

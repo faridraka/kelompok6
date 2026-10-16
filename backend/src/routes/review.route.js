@@ -3,7 +3,7 @@ import { reviewController } from '../controllers/review.controller.js'
 import { auth, requireRole } from '../middleware/auth.middleware.js'
 import { jsonRes } from '../utils/helper.js'
 import { authErrors, ErrorSchema } from '../schemas/common.schema.js'
-import { RateOrderBody, RateOrderParam, RateOrderResponse } from '../schemas/review.schema.js'
+import { RateOrderBody, RateOrderParam, RateOrderResponse, SaveReviewBody, SaveReviewResponse } from '../schemas/review.schema.js'
 
 const router = new OpenAPIHono()
 
@@ -32,5 +32,30 @@ const rateOrderRoute = createRoute({
 })
 
 router.openapi(rateOrderRoute, reviewController.rate)
+
+const saveReviewRoute = createRoute({
+  method: 'post',
+  path: '/{id}/performance-review',
+  tags: ['Orders'],
+  summary: 'Tulis performance review',
+  description:
+    'Coach menulis atau mengubah performance review untuk satu order miliknya. ' +
+    'Semua sesi order harus sudah completed dan order belum completed (belum dirating player). ' +
+    'Status order diubah trigger database, bukan backend.',
+  middleware: [auth, requireRole('coach')],
+  security: [{ Bearer: [] }],
+  request: {
+    params: RateOrderParam,
+    body: { required: true, content: { 'application/json': { schema: SaveReviewBody } } },
+  },
+  responses: {
+    200: jsonRes(SaveReviewResponse, 'Performance review tersimpan'),
+    400: jsonRes(ErrorSchema('Selesaikan semua sesi dulu'), 'Order terkunci / sesi belum semuanya completed'),
+    404: jsonRes(ErrorSchema('Order tidak ditemukan'), 'Order tidak ditemukan / bukan milik coach ini'),
+    ...authErrors,
+  },
+})
+
+router.openapi(saveReviewRoute, reviewController.savePerformanceReview)
 
 export default router
