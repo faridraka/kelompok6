@@ -20,7 +20,10 @@ const CoachDashboard = () => {
       {({ coach, orders, sessions, ratings }) => {
         const sessionsOf = (id) => sessions.filter((s) => s.orderId === id)
         const due = orders.filter((o) => stageOf(o, sessionsOf(o.id)) === 'due').length
-        const upcoming = sessions.filter((s) => s.status === 'scheduled').sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+        // Real BE creates sessions without a schedule (scheduledAt null): they have no date yet,
+        // so the NEXT countdown only looks at scheduled sessions and null-safe sort never throws.
+        const upcoming = sessions.filter((s) => s.status === 'scheduled' && s.scheduledAt).sort((a, b) => (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''))
+        const unscheduled = sessions.filter((s) => s.status === 'scheduled' && !s.scheduledAt).length
         const next = upcoming[0]
         const stats = ratingStats(ratings) // one source for the hero and the Reputation panel
 
@@ -28,6 +31,7 @@ const CoachDashboard = () => {
         const parts = [
           [sessions.filter((s) => s.status === 'completed' && !s.vod).length, 'recording', 'missing'],
           [due, 'review', 'due'],
+          [unscheduled, 'session', 'needs scheduling'],
         ].filter(([n]) => n > 0).map(([n, word, tail]) => `${plural(n, word)} ${tail}`)
 
         return (
