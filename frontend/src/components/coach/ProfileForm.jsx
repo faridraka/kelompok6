@@ -13,7 +13,7 @@ const BIO_MAX = 300
 // limit with a clear error instead of uploading an oversized file.
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024
 const label = 'block text-xs text-white/60'
-const startOf = (c) => ({ name: c.name, peakRank: c.peakRank, mainHero: c.mainHero, price: String(c.price), bio: c.bio, lanes: c.lanes })
+const startOf = (c) => ({ name: c.name ?? '', peakRank: c.peakRank ?? '', mainHero: c.mainHero ?? '', price: c.price == null ? '' : String(c.price), bio: c.bio ?? '', lanes: c.lanes ?? [] })
 
 // Edit side of the profile page. Save uploads a new avatar first (if picked), then sends the whole form;
 // Reset puts back what is saved.
@@ -64,7 +64,7 @@ const ProfileForm = ({ coach, onSaved }) => {
     finally { setBusy(false); setPhase('') }
   }
 
-  const initials = (f.name || coach.name).split(' ').map((w) => w[0]).join('').slice(0, 2)
+  const initials = (f.name || coach.name || '').split(' ').map((w) => w[0]).join('').slice(0, 2)
 
   return (
     <form onSubmit={save} className={`${card} space-y-4 p-6`}>
