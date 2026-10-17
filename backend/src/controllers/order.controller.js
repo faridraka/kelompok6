@@ -99,7 +99,7 @@ export const orderController = {
   // POST /orders (player only)
   create: async (c) => {
     const user = c.get('user')
-    const { coachId, lane, billing } = c.req.valid('json')
+    const { coachId, lane, billing, schedules } = c.req.valid('json')
 
     const { data: coach, error: coachError } = await supabaseAdmin
       .from('coach_profiles')
@@ -111,6 +111,13 @@ export const orderController = {
     if (!coach.lanes.includes(lane)) throw new AppError('Coach tidak melayani lane ini', 400)
     // A newly registered coach has an empty profile, so price can still be null.
     if (coach.price == null) throw new AppError('Coach belum menetapkan harga', 400)
+
+    // Player picks 3 distinct future session starts at checkout. 1 hour/session.
+    const picked = [...new Set(schedules)].sort()
+    if (picked.length !== SESSIONS_PER_ORDER) throw new AppError('Pilih 3 waktu sesi yang berbeda', 400)
+    const starts = picked.map((s) => new Date(s).getTime())
+    if (starts.some((t) => !Number.isFinite(t))) throw new AppError('Format jadwal tidak valid', 400)
+    if (starts.some((t) => t <= Date.now())) throw new AppError('Jadwal harus di masa depan', 400)
 
     // Price always comes from the database, never from the request body.
     const subtotal = coach.price
@@ -129,18 +136,22 @@ export const orderController = {
         billing_first_name: billing.firstName,
         billing_last_name: billing.lastName,
         billing_email: billing.email,
-        billing_zip: billing.zip,
-        billing_state: billing.state,
-        billing_country: billing.country,
+        billing_zip: billing.zip ?? null,
+        billing_state: billing.state ?? null,
+        billing_country: billing.country ?? null,
       })
       .select('id')
       .single()
     if (orderError) throw dbError(orderError)
 
-    // Dates stay null: the coach schedules each session later. status/meeting_link use the column defaults.
-    const sessionRows = Array.from({ length: SESSIONS_PER_ORDER }, (_, i) => ({
+    // Sessions are born scheduled (dates from checkout) but WITHOUT
+    // meeting_link/google_event_id: the Meet link is created in the app
+    // layer once the payment is paid. status uses the column default.
+    const sessionRows = picked.map((scheduledAt, i) => ({
       order_id: order.id,
       session_number: i + 1,
+      scheduled_at: scheduledAt,
+      scheduled_end: new Date(starts[i] + 3600e3).toISOString(),
     }))
     const { error: sessionError } = await supabaseAdmin.from('sessions').insert(sessionRows)
     if (sessionError) {
