@@ -11,9 +11,6 @@ export const CreateOrderBody = z
       firstName: z.string().min(1).openapi({ example: 'Budi' }),
       lastName: z.string().min(1).openapi({ example: 'Santoso' }),
       email: z.string().email().openapi({ example: 'budi@mail.com' }),
-      zip: z.string().min(1).optional().openapi({ example: '12345' }),
-      state: z.string().min(1).optional().openapi({ example: 'DKI Jakarta' }),
-      country: z.string().min(1).optional().openapi({ example: 'Indonesia' }),
     }),
     schedules: z
       .array(z.string().datetime({ offset: true }))

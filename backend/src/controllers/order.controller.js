@@ -136,9 +136,6 @@ export const orderController = {
         billing_first_name: billing.firstName,
         billing_last_name: billing.lastName,
         billing_email: billing.email,
-        billing_zip: billing.zip ?? null,
-        billing_state: billing.state ?? null,
-        billing_country: billing.country ?? null,
       })
       .select('id')
       .single()
