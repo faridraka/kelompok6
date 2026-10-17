@@ -7,6 +7,7 @@ import orderRoutes from './order.route.js'
 import usersRoutes from './users.route.js'
 import availabilityRoutes from './availability.route.js'
 import coachesRoutes from './coaches.route.js'
+import materialRoutes from './material.route.js'
 import ratingsRoutes from './ratings.route.js'
 import reviewRoutes from './review.route.js'
 import walletRoutes from './wallet.route.js'
@@ -23,6 +24,7 @@ routes.route('/orders', reviewRoutes)
 routes.route('/users', usersRoutes)
 routes.route('/users', availabilityRoutes)
 routes.route('/coaches', coachesRoutes)
+routes.route('/materials', materialRoutes)
 routes.route('/ratings', ratingsRoutes)
 routes.route('/wallet', walletRoutes)
 routes.route('/', paymentRoutes)

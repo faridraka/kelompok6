@@ -90,4 +90,54 @@ const vodRoute = createRoute({
 router.openapi(avatarRoute, uploadController.avatar)
 router.openapi(vodRoute, uploadController.vod)
 
+const materialRoute = createRoute({
+  method: "post",
+  path: "/materials",
+  tags: ["Uploads"],
+  summary: "Upload material",
+  description:
+    "Mengunggah file material (pdf, gambar, video). Hanya coach yang dapat mengupload material. URL hasil dipakai sebagai link di POST /materials.",
+  security: [{ Bearer: [] }],
+  middleware: [auth, requireRole('coach')],
+  request: {
+    body: {
+      required: true,
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            file: z
+              .instanceof(File)
+              .refine(
+                (file) =>
+                  file.type === "application/pdf" ||
+                  file.type.startsWith("image/") ||
+                  file.type.startsWith("video/") ||
+                  /\.(pdf|png|jpg|jpeg|webp|mp4|mkv|webm|mov|m4v|avi|ogv)$/i.test(file.name),
+                {
+                  message:
+                    "File harus berupa pdf, gambar, atau video.",
+                },
+              )
+              .refine((file) => file.size <= 50 * 1024 * 1024, {
+                message: "Ukuran file maksimal 50MB.",
+              })
+              .openapi({ type: "string", format: "binary" }),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: jsonRes(
+      z.object({ url: z.string().url() }),
+      "URL material yang diunggah",
+    ),
+    400: jsonRes(ErrorSchema("Invalid request body"), "Invalid request body"),
+    401: authErrors[401],
+    403: authErrors[403],
+  },
+});
+
+router.openapi(materialRoute, uploadController.material)
+
 export default router;
