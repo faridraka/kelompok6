@@ -46,8 +46,7 @@
         const queryMatch =
             q === '' ||
             coach.name.toLowerCase().includes(q) ||
-            coach.academyLabel.toLowerCase().includes(q) ||
-            coach.mainHero.toLowerCase().includes(q)
+            String(coach.mainHero ?? '').toLowerCase().includes(q)
         return laneMatch && queryMatch
         })
     }, [query, selectedLanes])
