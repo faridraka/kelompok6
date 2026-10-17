@@ -220,6 +220,23 @@ export const coachesController = {
     if (!coach) throw new AppError('Coach tidak ditemukan', 404)
 
     const [card] = await loadCards([coach])
-    return c.json(card, 200)
+
+    // Slot yang sudah terisi (checkout picker memfilter ini), 14 hari ke depan.
+    // Session tidak punya coach_id, jadi join ke orders. Sessions order
+    // pending_payment ikut dihitung supaya slot tidak bisa diambil dua kali
+    // selama order pertama belum dibayar.
+    const now = Date.now()
+    const horizon = new Date(now + 14 * 864e5).toISOString()
+    const { data: bookedRows, error: bookedError } = await supabaseAdmin
+      .from('sessions')
+      .select('scheduled_at, orders!inner(coach_id, status)')
+      .eq('orders.coach_id', coach.id)
+      .eq('status', 'scheduled')
+      .not('scheduled_at', 'is', null)
+      .gte('scheduled_at', new Date(now).toISOString())
+      .lt('scheduled_at', horizon)
+    if (bookedError) throw dbError(bookedError)
+
+    return c.json({ ...card, bookedStarts: (bookedRows ?? []).map((r) => r.scheduled_at).sort() }, 200)
   },
 }

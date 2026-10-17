@@ -119,6 +119,52 @@ export const orderController = {
     if (starts.some((t) => !Number.isFinite(t))) throw new AppError('Format jadwal tidak valid', 400)
     if (starts.some((t) => t <= Date.now())) throw new AppError('Jadwal harus di masa depan', 400)
 
+    // Validasi availability (server-side kebenaran; payload frontend bisa stale/forged).
+    // Slot harus ada di template mingguan coach: weekday Jakarta + jam 'HH:00'.
+    const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    const { data: availRows, error: availError } = await supabaseAdmin
+      .from('coach_availability')
+      .select('day, start_time')
+      .eq('coach_id', coachId)
+    if (availError) throw dbError(availError)
+    const openSlots = new Set(
+      (availRows ?? []).map((r) => `${r.day}@${String(r.start_time).slice(0, 5)}`),
+    )
+    const outside = []
+    for (let i = 0; i < picked.length; i++) {
+      const iso = picked[i]
+      const ymd = iso.slice(0, 10)
+      const hour = iso.slice(11, 13)
+      const weekday = WEEKDAYS[new Date(`${ymd}T12:00:00Z`).getUTCDay()]
+      if (!openSlots.has(`${weekday}@${hour}:00`)) outside.push(iso)
+    }
+    if (outside.length) {
+      throw new AppError(`Jadwal tidak sesuai ketersediaan coach: ${outside.join(', ')}`, 422)
+    }
+
+    // Cek slot yang sudah terisi oleh order lain (semua status: order
+    // pending_payment pun mengunci slot sampai dibayar/expired).
+    const now = Date.now()
+    const horizon = new Date(now + 14 * 864e5).toISOString()
+    const { data: takenRows, error: takenError } = await supabaseAdmin
+      .from('sessions')
+      .select('scheduled_at, orders!inner(coach_id, status)')
+      .eq('orders.coach_id', coachId)
+      .eq('status', 'scheduled')
+      .not('scheduled_at', 'is', null)
+      .gte('scheduled_at', new Date(now).toISOString())
+      .lt('scheduled_at', horizon)
+    if (takenError) throw dbError(takenError)
+    // Overlap 1 jam: picked [start, start+3600e3) vs taken [taken, taken+3600e3).
+    const taken = (takenRows ?? []).map((r) => new Date(r.scheduled_at).getTime())
+    const conflicts = picked.filter((iso) => {
+      const start = new Date(iso).getTime()
+      return taken.some((t) => t < start + 3600e3 && start < t + 3600e3)
+    })
+    if (conflicts.length) {
+      throw new AppError(`Jadwal sudah diambil: ${conflicts.join(', ')}`, 409)
+    }
+
     // Price always comes from the database, never from the request body.
     const subtotal = coach.price
     const tax = Math.round(subtotal * TAX_RATE)

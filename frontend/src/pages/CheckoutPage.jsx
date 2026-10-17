@@ -135,7 +135,7 @@ const CheckoutPage = () => {
           <h2 className="font-display text-xl font-bold uppercase text-white">Pick your 3 sessions</h2>
           <p className="mt-1 text-sm text-white/60">Times come from {coach.name}&apos;s weekly availability (Jakarta time).</p>
           <div className="mt-5">
-            <SchedulePicker availability={coach.availability} value={schedules} onChange={pickSchedules} />
+            <SchedulePicker availability={coach.availability} bookedSlots={coach.bookedStarts ?? []} value={schedules} onChange={pickSchedules} />
           </div>
           {errors.schedules && <p className="mt-3 text-xs text-gold-400">{errors.schedules}</p>}
         </section>
