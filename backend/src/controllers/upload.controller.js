@@ -1,9 +1,6 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3, BUCKET } from "../lib/s3.js";
+import { s3, BUCKET, PUBLIC_BASE_URL } from "../lib/s3.js";
 import { AppError } from "../utils/error.js";
-
-// Bucket dipakai path-style, jadi public URL = endpoint/bucket/key.
-const PUBLIC_BASE_URL = "https://kencana.basic.box.cloudeka.id";
 
 const safeName = (name) =>
   String(name || "file").replace(/\s+/g, "_").replace(/[^a-zA-Z0-9._-]/g, "");

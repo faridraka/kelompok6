@@ -21,8 +21,10 @@ const PlayerDashboard = () => {
     <>
       <PageHeader title="Dashboard" />
       <Async state={state}>
-        {({ orders, sessions, me }) => {
-          const upcoming = sessions.filter((s) => s.status === 'scheduled').sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+        {({ orders = [], sessions = [], me = {} }) => {
+          const upcoming = sessions
+            .filter((s) => s?.status === 'scheduled')
+            .sort((a, b) => String(a?.scheduledAt ?? '').localeCompare(String(b?.scheduledAt ?? '')))
           const next = upcoming[0]
           const toRate = orders.filter((o) => o.status === 'awaiting_rating')
           const count = (st) => orders.filter((o) => o.status === st).length
@@ -40,10 +42,10 @@ const PlayerDashboard = () => {
                 {next ? (
                   <div className="flex flex-col gap-4 border border-white/10 bg-navy-900/70 backdrop-blur-sm p-6 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="font-semibold text-white">{next.coach.name} · Session {next.sessionNumber}/{next.totalSessions}</p>
-                      <p className="mt-1 text-sm text-white/60">{fmtRange(next.scheduledAt, next.scheduledEnd, me.timezone)}</p>
+                      <p className="font-semibold text-white">{next?.coach?.name ?? 'Coach'} · Session {next?.sessionNumber ?? '?'}/{next?.totalSessions ?? '?'}</p>
+                      <p className="mt-1 text-sm text-white/60">{fmtRange(next?.scheduledAt, next?.scheduledEnd, me?.timezone)}</p>
                     </div>
-                    <a href={next.meetingLink} target="_blank" rel="noopener noreferrer" className={btn}>Join meeting</a>
+                    {next?.meetingLink && <a href={next.meetingLink} target="_blank" rel="noopener noreferrer" className={btn}>Join meeting</a>}
                   </div>
                 ) : <Empty>No upcoming sessions.</Empty>}
               </section>
@@ -53,8 +55,8 @@ const PlayerDashboard = () => {
                   <h2 className="mb-3 font-display text-xl font-bold uppercase text-white">Needs your attention</h2>
                   {toRate.map((o) => (
                     <div key={o.id} className="flex items-center justify-between gap-4 border border-gold-400/40 bg-navy-900/70 backdrop-blur-sm p-5">
-                      <p className="text-sm text-white">Your review from {o.coach.name} is ready. Rate your coach to finish.</p>
-                      <Link to={`/player/orders/${o.id}`} className={btn}>View review</Link>
+                      <p className="text-sm text-white">Your review from {o?.coach?.name ?? 'your coach'} is ready. Rate your coach to finish.</p>
+                      <Link to={`/player/orders/${o?.id ?? ''}`} className={btn}>View review</Link>
                     </div>
                   ))}
                 </section>
@@ -64,14 +66,15 @@ const PlayerDashboard = () => {
                 <h2 className="mb-3 font-display text-xl font-bold uppercase text-white">My coaches</h2>
                 <div className="grid gap-4 md:grid-cols-2">
                   {orders.map((o) => {
-                    const done = sessions.filter((s) => s.orderId === o.id && s.status === 'completed').length
+                    if (!o) return null
+                    const done = sessions.filter((s) => s?.orderId === o.id && s?.status === 'completed').length
                     return (
                       <div key={o.id} className="border border-white/10 bg-navy-900/70 backdrop-blur-sm p-5">
-                        <p className="font-semibold text-white">{o.coach.name}</p>
+                        <p className="font-semibold text-white">{o?.coach?.name ?? 'Coach'}</p>
                         <p className="text-xs text-periwinkle-300">{laneLabel(o.lane)}</p>
                         <div className="mt-4 flex items-center gap-1.5">
-                          {Array.from({ length: o.totalSessions }).map((_, i) => <span key={i} className={`h-2 w-8 ${i < done ? 'bg-cyan-glow' : 'bg-white/20'}`} />)}
-                          <span className="ml-2 text-xs text-white/60">{done}/{o.totalSessions} sessions</span>
+                          {Array.from({ length: o?.totalSessions ?? 0 }).map((_, i) => <span key={i} className={`h-2 w-8 ${i < done ? 'bg-cyan-glow' : 'bg-white/20'}`} />)}
+                          <span className="ml-2 text-xs text-white/60">{done}/{o?.totalSessions ?? 0} sessions</span>
                         </div>
                       </div>
                     )

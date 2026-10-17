@@ -30,14 +30,14 @@ const NextSession = ({ next, order }) => {
           </div>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between md:border-l md:border-white/10 md:pl-6">
             <div className="min-w-0">
-              <p className="truncate font-display text-2xl font-bold uppercase leading-tight text-white">{order.player.name}</p>
-              <p className="mt-1 text-sm text-white/85">Session {next.sessionNumber}/{next.totalSessions} · {laneLabel(order.lane)}</p>
+              <p className="truncate font-display text-2xl font-bold uppercase leading-tight text-white">{order?.player?.name ?? 'Player'}</p>
+              <p className="mt-1 text-sm text-white/85">Session {next?.sessionNumber ?? '?'}/{next?.totalSessions ?? '?'} · {laneLabel(order?.lane)}</p>
               <p className="text-sm text-white/85">
-                <>{at(next.scheduledAt, { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', '')} · {at(next.scheduledAt, { hour: '2-digit', minute: '2-digit' })}{next.scheduledEnd ? ` – ${at(next.scheduledEnd, { hour: '2-digit', minute: '2-digit' })}` : ''}</>
+                <>{at(next?.scheduledAt, { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', '')} · {at(next?.scheduledAt, { hour: '2-digit', minute: '2-digit' })}{next?.scheduledEnd ? ` – ${at(next.scheduledEnd, { hour: '2-digit', minute: '2-digit' })}` : ''}</>
               </p>
               <p className="mt-1 text-sm font-semibold text-white/85">Scheduled</p>
             </div>
-            <Link to={`/coach/schedule?session=${next.id}`} className={`${btnDark} shrink-0`}>View</Link>
+            <Link to={`/coach/schedule?session=${next?.id ?? ''}`} className={`${btnDark} shrink-0`}>View</Link>
           </div>
         </div>
       ) : (

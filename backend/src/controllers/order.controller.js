@@ -99,7 +99,7 @@ export const orderController = {
   // POST /orders (player only)
   create: async (c) => {
     const user = c.get('user')
-    const { coachId, lane, billing } = c.req.valid('json')
+    const { coachId, lane, billing, schedules } = c.req.valid('json')
 
     const { data: coach, error: coachError } = await supabaseAdmin
       .from('coach_profiles')
@@ -111,6 +111,59 @@ export const orderController = {
     if (!coach.lanes.includes(lane)) throw new AppError('Coach tidak melayani lane ini', 400)
     // A newly registered coach has an empty profile, so price can still be null.
     if (coach.price == null) throw new AppError('Coach belum menetapkan harga', 400)
+
+    // Player picks 3 distinct future session starts at checkout. 1 hour/session.
+    const picked = [...new Set(schedules)].sort()
+    if (picked.length !== SESSIONS_PER_ORDER) throw new AppError('Pilih 3 waktu sesi yang berbeda', 400)
+    const starts = picked.map((s) => new Date(s).getTime())
+    if (starts.some((t) => !Number.isFinite(t))) throw new AppError('Format jadwal tidak valid', 400)
+    if (starts.some((t) => t <= Date.now())) throw new AppError('Jadwal harus di masa depan', 400)
+
+    // Validasi availability (server-side kebenaran; payload frontend bisa stale/forged).
+    // Slot harus ada di template mingguan coach: weekday Jakarta + jam 'HH:00'.
+    const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    const { data: availRows, error: availError } = await supabaseAdmin
+      .from('coach_availability')
+      .select('day, start_time')
+      .eq('coach_id', coachId)
+    if (availError) throw dbError(availError)
+    const openSlots = new Set(
+      (availRows ?? []).map((r) => `${r.day}@${String(r.start_time).slice(0, 5)}`),
+    )
+    const outside = []
+    for (let i = 0; i < picked.length; i++) {
+      const iso = picked[i]
+      const ymd = iso.slice(0, 10)
+      const hour = iso.slice(11, 13)
+      const weekday = WEEKDAYS[new Date(`${ymd}T12:00:00Z`).getUTCDay()]
+      if (!openSlots.has(`${weekday}@${hour}:00`)) outside.push(iso)
+    }
+    if (outside.length) {
+      throw new AppError(`Jadwal tidak sesuai ketersediaan coach: ${outside.join(', ')}`, 422)
+    }
+
+    // Cek slot yang sudah terisi oleh order lain (semua status: order
+    // pending_payment pun mengunci slot sampai dibayar/expired).
+    const now = Date.now()
+    const horizon = new Date(now + 14 * 864e5).toISOString()
+    const { data: takenRows, error: takenError } = await supabaseAdmin
+      .from('sessions')
+      .select('scheduled_at, orders!inner(coach_id, status)')
+      .eq('orders.coach_id', coachId)
+      .eq('status', 'scheduled')
+      .not('scheduled_at', 'is', null)
+      .gte('scheduled_at', new Date(now).toISOString())
+      .lt('scheduled_at', horizon)
+    if (takenError) throw dbError(takenError)
+    // Overlap 1 jam: picked [start, start+3600e3) vs taken [taken, taken+3600e3).
+    const taken = (takenRows ?? []).map((r) => new Date(r.scheduled_at).getTime())
+    const conflicts = picked.filter((iso) => {
+      const start = new Date(iso).getTime()
+      return taken.some((t) => t < start + 3600e3 && start < t + 3600e3)
+    })
+    if (conflicts.length) {
+      throw new AppError(`Jadwal sudah diambil: ${conflicts.join(', ')}`, 409)
+    }
 
     // Price always comes from the database, never from the request body.
     const subtotal = coach.price
@@ -129,18 +182,19 @@ export const orderController = {
         billing_first_name: billing.firstName,
         billing_last_name: billing.lastName,
         billing_email: billing.email,
-        billing_zip: billing.zip,
-        billing_state: billing.state,
-        billing_country: billing.country,
       })
       .select('id')
       .single()
     if (orderError) throw dbError(orderError)
 
-    // Dates stay null: the coach schedules each session later. status/meeting_link use the column defaults.
-    const sessionRows = Array.from({ length: SESSIONS_PER_ORDER }, (_, i) => ({
+    // Sessions are born scheduled (dates from checkout) but WITHOUT
+    // meeting_link/google_event_id: the Meet link is created in the app
+    // layer once the payment is paid. status uses the column default.
+    const sessionRows = picked.map((scheduledAt, i) => ({
       order_id: order.id,
       session_number: i + 1,
+      scheduled_at: scheduledAt,
+      scheduled_end: new Date(starts[i] + 3600e3).toISOString(),
     }))
     const { error: sessionError } = await supabaseAdmin.from('sessions').insert(sessionRows)
     if (sessionError) {
