@@ -29,9 +29,11 @@ const CoachCard = ({ coach }) => {
         </div>
 
         <div>
-          <p className="font-display text-[11px] font-medium uppercase tracking-[0.22em] text-periwinkle-300">
-            {coach.academyLabel}
-          </p>
+          {coach.academyLabel && (
+            <p className="font-display text-[11px] font-medium uppercase tracking-[0.22em] text-periwinkle-300">
+              {coach.academyLabel}
+            </p>
+          )}
           <h3 className="mt-1 font-display text-xl font-bold uppercase leading-tight text-white">{coach.name}</h3>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {coach.lanes.map((l) => (

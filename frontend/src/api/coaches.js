@@ -1,6 +1,9 @@
 import { request, USE_MOCK } from './client'
 import { generateCoaches } from '../data/coaches'
 
+// COCH-1  GET /coaches
+export const getCoaches = () => (USE_MOCK ? Promise.resolve(generateCoaches(9)) : request('/coaches'))
+
 // COCH-2  GET /coaches/:id
 export const getCoach = async (id) => {
   if (USE_MOCK) return generateCoaches(9).find((c) => String(c.id) === String(id)) ?? null
