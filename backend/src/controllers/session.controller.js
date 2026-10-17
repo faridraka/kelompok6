@@ -1,21 +1,34 @@
 import { supabaseAdmin } from "../lib/supabase.js";
+import { presignDownloadUrl } from "../lib/s3.js";
 import { AppError } from "../utils/error.js";
 
-const toSession = (row, totalSessions, coach) => ({
-  id: row.id,
-  orderId: row.order_id,
-  sessionNumber: row.session_number,
-  totalSessions,
-  scheduledAt: row.scheduled_at,
-  scheduledEnd: row.scheduled_end,
-  meetingLink: row.meeting_link,
-  status: row.status,
-  vod: row.vod_url
-    ? { url: row.vod_url, downloadUrl: row.vod_download_url ?? row.vod_url }
-    : null,
-  completedAt: row.completed_at,
-  ...(coach ? { coach } : {}),
-});
+// downloadUrl dibuat presigned dengan Content-Disposition: attachment supaya
+// <a download> browser bekerja (atribut -dynamic diabaikan untuk URL
+// cross-origin tanpa header itu). vod.url tetap URL publik biasa untuk Watch.
+const toSession = async (row, totalSessions, coach) => {
+  let vod = null;
+  if (row.vod_url) {
+    const rawDownload = row.vod_download_url ?? row.vod_url;
+    const file = decodeURIComponent(
+      (rawDownload.split("?")[0].split("/").pop() ?? "recording.mp4").replace(/^[0-9a-f-]{36}-/i, ""),
+    );
+    vod = { url: row.vod_url, downloadUrl: await presignDownloadUrl(rawDownload, file) };
+  }
+
+  return {
+    id: row.id,
+    orderId: row.order_id,
+    sessionNumber: row.session_number,
+    totalSessions,
+    scheduledAt: row.scheduled_at,
+    scheduledEnd: row.scheduled_end,
+    meetingLink: row.meeting_link,
+    status: row.status,
+    vod,
+    completedAt: row.completed_at,
+    ...(coach ? { coach } : {}),
+  };
+};
 
 export const sessionController = {
   list: async (c) => {
@@ -92,18 +105,20 @@ export const sessionController = {
       }
     }
 
-    const data = (rows ?? []).map((row) => {
-      const order = byOrderId.get(row.order_id);
-      const coach =
-        role === "player"
-          ? (coaches.get(order?.coach_id) ?? {
-              id: order?.coach_id,
-              name: "Coach",
-              avatar: null,
-            })
-          : undefined;
-      return toSession(row, order?.session_count ?? 3, coach);
-    });
+    const data = await Promise.all(
+      (rows ?? []).map(async (row) => {
+        const order = byOrderId.get(row.order_id);
+        const coach =
+          role === "player"
+            ? (coaches.get(order?.coach_id) ?? {
+                id: order?.coach_id,
+                name: "Coach",
+                avatar: null,
+              })
+            : undefined;
+        return toSession(row, order?.session_count ?? 3, coach);
+      }),
+    );
     return c.json(data, 200);
   },
   completedSession: async (c) => {
@@ -152,7 +167,7 @@ export const sessionController = {
     if (updateError) throw new AppError(updateError.message, 500);
     if (!updatedSession) throw new AppError("Session tidak ditemukan", 404);
 
-    return c.json(toSession(updatedSession, order.session_count ?? 3), 200);
+    return c.json(await toSession(updatedSession, order.session_count ?? 3), 200);
   },
   saveRecording: async (c) => {
     const user = c.get("user");
@@ -193,6 +208,6 @@ export const sessionController = {
     if (updateError) throw new AppError(updateError.message, 500);
     if (!updatedSession) throw new AppError("Session tidak ditemukan", 404);
 
-    return c.json(toSession(updatedSession, order.session_count ?? 3), 200);
+    return c.json(await toSession(updatedSession, order.session_count ?? 3), 200);
   },
 };
