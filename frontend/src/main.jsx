@@ -6,6 +6,7 @@ import { RouterProvider } from 'react-router/dom'
 import './index.css'
 
 import App from './App.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import CoachesPage from './pages/CoachesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     Component: App,
+    ErrorBoundary: ErrorBoundary,
     loader: coachRedirectLoader,
     children: [
       { index: true, Component: LandingPage },
@@ -49,6 +51,7 @@ const router = createBrowserRouter([
   {
     path: '/coach',
     Component: CoachLayout,
+    ErrorBoundary: ErrorBoundary,
     loader: coachOnlyLoader,
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
@@ -63,6 +66,7 @@ const router = createBrowserRouter([
   {
     path: '/player',
     Component: PlayerLayout,
+    ErrorBoundary: ErrorBoundary,
     loader: playerOnlyLoader,
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
@@ -74,7 +78,7 @@ const router = createBrowserRouter([
       { path: 'orders/:id', Component: PlayerOrder },
     ],
   },
-  { path: '*', Component: NotFoundPage }
+  { path: '*', Component: NotFoundPage, ErrorBoundary: ErrorBoundary }
 ])
 
 createRoot(document.getElementById('root')).render(

@@ -25,20 +25,20 @@ const PlayerOrder = () => {
   return (
     <Async state={state}>
       {(o) => {
-        const done = o.sessions.filter((s) => s.status === 'completed').length
+        const done = (o?.sessions ?? []).filter((s) => s?.status === 'completed').length
         const r = o.performanceReview
         return (
           <>
             <Link to="/player/sessions" className="mb-4 inline-block text-sm text-periwinkle-300 hover:text-white">‹ Back to sessions</Link>
-            <PageHeader title={`${o.coach.name} · ${laneLabel(o.lane)}`} sub={`${done}/${o.totalSessions} sessions completed`} />
+            <PageHeader title={`${o?.coach?.name ?? 'Coach'} · ${laneLabel(o?.lane)}`} sub={`${done}/${o?.totalSessions ?? 0} sessions completed`} />
             {!r ? <p className="border border-white/10 bg-navy-900/70 backdrop-blur-sm p-6 text-sm text-white/60">Your performance review appears here after all 3 sessions are done.</p> : (
               <div className="max-w-2xl space-y-8">
                 <section className="space-y-3 border border-white/10 bg-navy-900/70 backdrop-blur-sm p-6 text-sm text-white/80">
                   <h2 className="font-display text-xl font-bold uppercase text-white">Performance review</h2>
-                  <p>{r.notes}</p>
-                  <p><span className="font-semibold text-white">Strengths:</span> {r.strengths.join(', ')}</p>
-                  <p><span className="font-semibold text-white">Weaknesses:</span> {r.weaknesses.join(', ')}</p>
-                  <p><span className="font-semibold text-white">Recommendation:</span> {r.recommendation}</p>
+                  <p>{r?.notes}</p>
+                  <p><span className="font-semibold text-white">Strengths:</span> {r?.strengths?.join(', ')}</p>
+                  <p><span className="font-semibold text-white">Weaknesses:</span> {r?.weaknesses?.join(', ')}</p>
+                  <p><span className="font-semibold text-white">Recommendation:</span> {r?.recommendation}</p>
                 </section>
                 {o.status === 'awaiting_rating' ? (
                   <form onSubmit={submit} className="space-y-4 border border-gold-400/40 bg-navy-900/70 backdrop-blur-sm p-6">
