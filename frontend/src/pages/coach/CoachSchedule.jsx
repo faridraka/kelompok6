@@ -50,11 +50,15 @@ const CoachSchedule = () => {
   // below the board and scheduled from the detail panel. Date sorts are null-safe.
   const view = state.data && (() => {
     const { orders, sessions } = state.data
-    const scheduled = sessions.filter((s) => s.scheduledAt)
-    const unscheduled = sessions.filter((s) => !s.scheduledAt && s.status !== 'completed').sort((a, b) => a.sessionNumber - b.sessionNumber)
+    // Only sessions whose order the coach can see. A session without a matching order (e.g. one
+    // belonging to an order the API hides) would render with an undefined order and crash on o.lane.
+    const orderIds = new Set(orders.map((o) => o.id))
+    const mine = sessions.filter((s) => orderIds.has(s.orderId))
+    const scheduled = mine.filter((s) => s.scheduledAt)
+    const unscheduled = mine.filter((s) => !s.scheduledAt && s.status !== 'completed').sort((a, b) => a.sessionNumber - b.sessionNumber)
     const upcoming = scheduled.filter((s) => s.status === 'scheduled').sort(byDate)
     const next = upcoming[0] // the closest unfinished session: the NEXT card and the NEXT tag on the board
-    const selected = sessions.find((s) => s.id === pick) ?? next ?? [...sessions].sort(byDate).at(-1)
+    const selected = mine.find((s) => s.id === pick) ?? next ?? [...mine].sort(byDate).at(-1)
     const today = dayKey(new Date())
     const start = weekStart ?? mondayOf(selected?.scheduledAt ? dayKey(selected.scheduledAt) : today)
     // One column per day of the shown week; the filter only decides which sessions are drawn.
