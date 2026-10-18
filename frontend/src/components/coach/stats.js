@@ -21,6 +21,12 @@ export const stageOf = (order, sessions = []) => {
   return order.rating ? 'rated' : 'awaiting' // review sent: waiting for the player, or already rated
 }
 
+// Keeps only sessions whose order is present in the orders list (GET /orders hides pending_payment, GET /sessions does not).
+export const sessionsWithOrder = (orders, sessions = []) => {
+  const ids = new Set((orders ?? []).map((o) => o?.id))
+  return (sessions ?? []).filter((s) => ids.has(s?.orderId))
+}
+
 // Everything the Reputation panel and the hero show. `ratings` is the ONE list of all coach ratings (getCoachRatings():
 // rating history + the rating on every rated order), shape { playerNickname, rating, comment, ratedAt }.
 // counts[0] = 5 stars ... counts[4] = 1 star. The hero and the Reputation panel both use this result, so the number is always the same.

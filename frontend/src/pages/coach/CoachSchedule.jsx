@@ -6,7 +6,7 @@ import banner from '../../assets/coach/schedule-banner.webp'
 import NextSessionCard from '../../components/coach/NextSessionCard'
 import SessionDetail from '../../components/coach/SessionDetail'
 import WeekBoard from '../../components/coach/WeekBoard'
-import { plural } from '../../components/coach/stats'
+import { plural, sessionsWithOrder } from '../../components/coach/stats'
 import { Empty, btnGhost } from '../../components/coach/ui'
 import { Async, PageHeader, Pill } from '../../components/player/ui'
 import { useAsync } from '../../hooks/useAsync'
@@ -15,7 +15,7 @@ import { addDays, dayKey, mondayOf, rangeLabel } from '../../utils/schedule'
 const FILTERS = [['all', 'All'], ['scheduled', 'Upcoming'], ['completed', 'Completed']]
 const load = async () => {
   const [orders, sessions] = await Promise.all([getCoachOrders(), getCoachSessions()])
-  return { orders, sessions }
+  return { orders, sessions: sessionsWithOrder(orders, sessions) }
 }
 const byDate = (a, b) => (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? '')
 const toDetail = () => document.getElementById('session-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' })

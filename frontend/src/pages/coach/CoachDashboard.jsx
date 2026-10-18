@@ -4,13 +4,13 @@ import NextSession from '../../components/coach/NextSession'
 import PlayerPipeline from '../../components/coach/PlayerPipeline'
 import ReputationPanel from '../../components/coach/ReputationPanel'
 import WeeklyBars from '../../components/coach/WeeklyBars'
-import { plural, ratingStats, stageOf, weeklyCompleted } from '../../components/coach/stats'
+import { plural, ratingStats, sessionsWithOrder, stageOf, weeklyCompleted } from '../../components/coach/stats'
 import { Async } from '../../components/player/ui'
 import { useAsync } from '../../hooks/useAsync'
 
 const load = async () => {
   const [coach, orders, sessions, ratings] = await Promise.all([getCoachProfile(), getCoachOrders(), getCoachSessions(), getCoachRatings()])
-  return { coach, orders, sessions, ratings }
+  return { coach, orders, sessions: sessionsWithOrder(orders, sessions), ratings }
 }
 
 const CoachDashboard = () => {
