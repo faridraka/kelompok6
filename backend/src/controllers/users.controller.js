@@ -1,32 +1,8 @@
 import { supabaseAdmin } from '../lib/supabase.js'
 import { AppError } from '../utils/error.js'
-
-const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+import { buildAvailability } from '../utils/availability.js'
 
 const dbError = (error) => new Error(error.message ?? 'Database error', { cause: error })
-
-const emptyAvailability = () => ({
-  monday: [],
-  tuesday: [],
-  wednesday: [],
-  thursday: [],
-  friday: [],
-  saturday: [],
-  sunday: [],
-})
-
-// coach_availability.start_time can come back as 'HH:MM:SS' from Postgres: keep 'HH:MM'.
-const normalizeTime = (value) => String(value ?? '').slice(0, 5)
-
-const buildAvailability = (rows) => {
-  const availability = emptyAvailability()
-  for (const row of rows ?? []) {
-    if (!DAYS.includes(row.day)) continue
-    availability[row.day].push(normalizeTime(row.start_time))
-  }
-  for (const day of DAYS) availability[day].sort()
-  return availability
-}
 
 const formatPlayer = (user, profile) => ({
   id: user.id,
@@ -119,12 +95,6 @@ export const usersController = {
       throw new AppError('Data profil coach tidak lengkap', 400)
     }
 
-    const { error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .update({ name: body.name })
-      .eq('id', user.id)
-    if (profileError) throw dbError(profileError)
-
     const patch = {
       peak_rank: body.peakRank,
       main_hero: body.mainHero,
@@ -135,6 +105,7 @@ export const usersController = {
     // avatar: undefined = leave unchanged, null = clear, url = set.
     if (body.avatar !== undefined) patch.avatar_url = body.avatar
 
+    // Coach row first: a failed coach update must not leave profiles.name renamed.
     const { data: updated, error: coachError } = await supabaseAdmin
       .from('coach_profiles')
       .update(patch)
@@ -143,6 +114,12 @@ export const usersController = {
       .maybeSingle()
     if (coachError) throw dbError(coachError)
     if (!updated) throw new AppError('Profil coach tidak ditemukan', 404)
+
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .update({ name: body.name })
+      .eq('id', user.id)
+    if (profileError) throw dbError(profileError)
 
     return c.json(await loadMe(user), 200)
   },

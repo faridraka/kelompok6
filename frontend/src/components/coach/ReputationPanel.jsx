@@ -1,8 +1,8 @@
 import { plural } from './stats'
 
-// Average, star distribution and the newest comment. Every number comes from ratingStats() (rating history + rated orders), the same result the hero uses.
+// Average, star distribution and the newest non-empty comment. Every number comes from ratingStats() (rating history + rated orders), the same result the hero uses.
 const ReputationPanel = ({ stats }) => {
-  const latest = stats.latest[0]
+  const quote = stats.latest.find((r) => r?.comment?.trim()) // latest is newest-first; skip empty comments
   return (
     <div className="h-full rounded-md border border-white/10 bg-royal-600 p-6">
       <h2 className="font-display text-xl font-bold uppercase text-white">Reputation</h2>
@@ -23,10 +23,12 @@ const ReputationPanel = ({ stats }) => {
               ))}
             </div>
           </div>
-          <figure className="mt-6 border-t border-white/10 pt-5">
-            <blockquote className="text-sm text-white/90">“{latest.comment}”</blockquote>
-            <figcaption className="mt-1 text-xs text-white/70">{latest.playerNickname} · {latest.rating}/5</figcaption>
-          </figure>
+          {quote && (
+            <figure className="mt-6 border-t border-white/10 pt-5">
+              <blockquote className="text-sm text-white/90">“{quote.comment}”</blockquote>
+              <figcaption className="mt-1 text-xs text-white/70">{quote.playerNickname} · {quote.rating}/5</figcaption>
+            </figure>
+          )}
         </>
       ) : <p className="mt-4 text-sm text-white/70">No ratings yet.</p>}
     </div>
