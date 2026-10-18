@@ -25,3 +25,12 @@ export const uploadCoachVod = (file) => {
   form.append('file', file)
   return uploadRequest('/uploads/vod', form)
 }
+// GET /materials — coach token returns only the coach's own rows (newest first).
+export const getCoachMaterials = () => request('/materials')
+export const createCoachMaterial = (body) => request('/materials', { method: 'POST', body }) // body: { type, title, tagline?, description?, thumbnailUrl?, link }
+// MAT-1  POST /uploads/materials (multipart file, pdf/image/video, 50MB) -> { url }
+export const uploadCoachMaterial = (file) => {
+  const form = new FormData()
+  form.append('file', file)
+  return uploadRequest('/uploads/materials', form)
+}

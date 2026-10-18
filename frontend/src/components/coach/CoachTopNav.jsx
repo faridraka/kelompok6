@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { to: '/coach/schedule', label: 'Schedule' },
   { to: '/coach/records', label: 'Upload Record' },
   { to: '/coach/reviews', label: 'Review Player' },
+  { to: '/coach/materials', label: 'Materials' },
 ]
 
 const PROFILE_PATH = '/coach/profile'
