@@ -17,8 +17,8 @@ const SessionBlock = ({ s, o, selected, isNext, onSelect }) => {
         <span className="font-display text-lg font-bold leading-none">{timeOf(s.scheduledAt)}</span>
         {isNext && <span className="rounded-md bg-white px-1.5 py-0.5 font-display text-[10px] font-semibold uppercase tracking-wide text-navy-950">Next</span>}
       </span>
-      <span className="mt-1 block truncate font-display text-sm font-semibold uppercase">{o.player.name}</span>
-      <span className="block text-[11px] opacity-70">Session {s.sessionNumber}/{s.totalSessions} · {laneLabel(o.lane)}</span>
+      <span className="mt-1 block truncate font-display text-sm font-semibold uppercase">{o?.player?.name ?? 'Player'}</span>
+      <span className="block text-[11px] opacity-70">Session {s.sessionNumber}/{s.totalSessions} · {laneLabel(o?.lane)}</span>
       <span className={`mt-1 block text-[11px] font-semibold ${tone}`}>{label}</span>
     </button>
   )

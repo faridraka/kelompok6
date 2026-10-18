@@ -57,8 +57,8 @@ const LockedInfo = ({ s }) => (
 // The panel under the board: lane art on the left, then the session summary and the action (or locked info).
 const SessionDetail = ({ s, o, onSaved }) => {
   const [label, tone] = statusOf(s)
-  const art = ART[o.lane]
-  const initials = o.player.name.split(' ').map((w) => w[0]).join('').slice(0, 2)
+  const art = o ? ART[o.lane] : null
+  const initials = o?.player?.name?.split(' ').map((w) => w[0]).join('').slice(0, 2) || '?'
   return (
     <section id="session-detail" className={`${card} mt-6 scroll-mt-24 overflow-hidden md:flex`}>
       <div className="relative h-44 shrink-0 border-b border-white/10 bg-navy-950 md:h-auto md:w-52 md:border-b-0 md:border-r">
@@ -69,8 +69,8 @@ const SessionDetail = ({ s, o, onSaved }) => {
       <div className="grid flex-1 gap-8 p-6 md:grid-cols-2 md:p-8">
         <div className="min-w-0">
           <p className="font-display text-4xl font-bold uppercase leading-tight text-white">{longDate(s.scheduledAt)} <span className="ml-2 text-white/70">{timeOf(s.scheduledAt)}{s.scheduledEnd ? ` – ${timeOf(s.scheduledEnd)}` : ''}</span></p>
-          <h2 className="mt-4 truncate font-display text-xl font-bold uppercase leading-tight text-white">{o.player.name}</h2>
-          <p className="text-xs text-white/60">{o.id.toUpperCase()} · {laneLabel(o.lane)} · Session {s.sessionNumber}/{s.totalSessions}</p>
+          <h2 className="mt-4 truncate font-display text-xl font-bold uppercase leading-tight text-white">{o?.player?.name ?? 'Player'}</h2>
+          <p className="text-xs text-white/60">{o?.id?.toUpperCase() ?? '—'} · {laneLabel(o?.lane)} · Session {s.sessionNumber}/{s.totalSessions}</p>
           <p className={`mt-3 text-sm font-semibold ${tone}`}>{label}</p>
         </div>
         {s.status === 'completed' ? <LockedInfo s={s} /> : <SessionInfo key={s.id} s={s} onSaved={onSaved} />}

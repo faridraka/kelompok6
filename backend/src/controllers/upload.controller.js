@@ -17,7 +17,8 @@ const uploadTo = async (folder, file) => {
         ContentType: file.type || "application/octet-stream",
       }),
     );
-  } catch {
+  } catch (err) {
+    console.error(`S3 upload gagal (${folder}):`, err?.name, "-", err?.message);
     throw new AppError("Gagal mengunggah file", 500);
   }
   return `${PUBLIC_BASE_URL}/${BUCKET}/${key}`;
@@ -38,6 +39,14 @@ export const uploadController = {
     if (!file || typeof file.arrayBuffer !== "function")
       throw new AppError("File tidak ditemukan", 400);
     const url = await uploadTo("vods", file);
+    return c.json({ url }, 200);
+  },
+  // POST /uploads/materials — body multipart { file }. Hanya coach (requireRole di route).
+  material: async (c) => {
+    const { file } = c.req.valid("form");
+    if (!file || typeof file.arrayBuffer !== "function")
+      throw new AppError("File tidak ditemukan", 400);
+    const url = await uploadTo("materials", file);
     return c.json({ url }, 200);
   },
 };

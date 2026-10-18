@@ -28,6 +28,7 @@ import CoachSchedule from './pages/coach/CoachSchedule.jsx'
 import CoachRecords from './pages/coach/CoachRecords.jsx'
 import CoachReviews from './pages/coach/CoachReviews.jsx'
 import CoachProfile from './pages/coach/CoachProfile.jsx'
+import CoachMaterials from './pages/coach/CoachMaterials.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 import { protectedLoader, guestLoader, coachOnlyLoader, playerOnlyLoader, coachRedirectLoader } from './routes/authMiddleware'
 
@@ -59,6 +60,7 @@ const router = createBrowserRouter([
       { path: 'schedule', Component: CoachSchedule },
       { path: 'records', Component: CoachRecords },
       { path: 'reviews', Component: CoachReviews },
+      { path: 'materials', Component: CoachMaterials },
       { path: 'profile', Component: CoachProfile },
       { path: '*', element: <Navigate to="/coach/dashboard" replace /> },
     ],

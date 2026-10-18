@@ -83,6 +83,7 @@ app.doc("/openapi.json", {
     { name: "Authentication", description: "Authentication related endpoints" },
     { name: "Sessions", description: "Sessions related endpoints" },
     { name: "Uploads", description: "Uploads related endpoints" },
+    { name: "Materials", description: "Materials related endpoints" },
   ],
 });
 

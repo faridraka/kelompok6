@@ -55,6 +55,9 @@ export const sessionController = {
       .from("orders")
       .select("id, session_count, coach_id")
       .eq(ownerColumn, user.id);
+    // Coaches never see unpaid orders (same rule as GET /orders), so their sessions must not
+    // leak either: otherwise the schedule joins a session to an order it cannot find.
+    if (role === "coach") ordersQuery = ordersQuery.neq("status", "pending_payment");
     if (orderId) ordersQuery = ordersQuery.eq("id", orderId);
     const { data: orders, error: ordersError } = await ordersQuery;
     if (ordersError) throw new AppError(ordersError.message, 500);
