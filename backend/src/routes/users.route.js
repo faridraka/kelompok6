@@ -32,7 +32,8 @@ const updateMeRoute = createRoute({
   summary: 'Ubah profil sendiri',
   description:
     'Coach: { name, peakRank, mainHero, price, bio, lanes (1-3 dari gold, exp, mid, jungle, roam), avatar } ' +
-    '(name -> profiles, sisanya -> coach_profiles; avatar undefined = tidak diubah). ' +
+    '(coach_profiles dulu, lalu name -> profiles; avatar undefined = tidak diubah, null = clear, ' +
+    'string = harus URL bucket avatars). Body ketat: field asing ditolak (422). ' +
     'Player: { name } saja. Mengembalikan bentuk yang sama seperti GET.',
   middleware: [auth, requireRole('player', 'coach')],
   security: [{ Bearer: [] }],

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router'
 import { getCoachOrders, getCoachSessions } from '../../api/coach'
 import banner from '../../assets/coach/schedule-banner.webp'
 import RecordingCard from '../../components/coach/RecordingCard'
+import { sessionsWithOrder } from '../../components/coach/stats'
 import { Empty } from '../../components/coach/ui'
 import { Async, PageHeader, Pill } from '../../components/player/ui'
 import { useAsync } from '../../hooks/useAsync'
@@ -11,7 +12,7 @@ const FILTERS = [['all', 'All'], ['needs', 'Needs recording'], ['uploaded', 'Upl
 const EMPTY = { all: 'No completed sessions yet.', needs: 'No sessions need a recording.', uploaded: 'No recordings uploaded yet.' }
 const load = async () => {
   const [orders, sessions] = await Promise.all([getCoachOrders(), getCoachSessions()])
-  return { orders, sessions }
+  return { orders, sessions: sessionsWithOrder(orders, sessions) }
 }
 
 const CoachRecords = () => {

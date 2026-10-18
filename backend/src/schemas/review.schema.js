@@ -18,9 +18,9 @@ export const RateOrderResponse = z
 export const SaveReviewBody = z
   .object({
     notes: z.string().min(1).openapi({ example: 'Baca draft sudah bagus dan rotasi tepat waktu.' }),
-    strengths: z.array(z.string()).openapi({ example: ['Baca draft', 'Rotasi tepat waktu'] }),
-    weaknesses: z.array(z.string()).openapi({ example: ['Manajemen cooldown skill'] }),
-    recommendation: z.string().optional().openapi({ example: 'Hitung ultimate lawan sebelum engage.' }),
+    strengths: z.array(z.string().min(1)).min(1).openapi({ example: ['Baca draft', 'Rotasi tepat waktu'] }),
+    weaknesses: z.array(z.string().min(1)).min(1).openapi({ example: ['Manajemen cooldown skill'] }),
+    recommendation: z.string().min(1).openapi({ example: 'Hitung ultimate lawan sebelum engage.' }),
   })
   .openapi('SaveReviewBody')
 

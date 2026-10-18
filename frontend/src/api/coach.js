@@ -6,7 +6,6 @@ export const getCoachProfile = () => request('/users/me') // USER-1
 export const getCoachOrders = () => request('/orders') // ORD-2 (coach view)
 export const getCoachSessions = () => request('/sessions') // SESS-1
 export const getCoachRatings = () => request('/ratings') // GET /ratings
-export const getCoachWallet = () => request('/wallet') // GET /wallet
 export const saveCoachProfile = (body) => request('/users/me', { method: 'PUT', body }) // body: { name, peakRank, mainHero, price, bio, lanes[], avatar? }
 export const getCoachAvailability = () => request('/users/me/availability') // AVAIL-1
 export const saveCoachAvailability = (body) => request('/users/me/availability', { method: 'PUT', body }) // AVAIL-2
@@ -25,6 +24,42 @@ export const uploadCoachVod = (file) => {
   form.append('file', file)
   return uploadRequest('/uploads/vod', form)
 }
+<<<<<<< HEAD
+
+// ===== WALLET =====
+
+// Coerces one payload value to a finite Number (0 for missing or invalid input).
+const toNumber = (value) => {
+  const n = typeof value === 'number' ? value : typeof value === 'string' && value.trim() ? Number(value) : NaN
+  return Number.isFinite(n) ? n : 0
+}
+
+// Shapes one transaction for WalletCard, keeping every field in its declared type.
+const normalizeTransaction = (raw, index) => ({
+  id: raw?.id ?? `wallet-tx-${index}`,
+  playerName: typeof raw?.playerName === 'string' && raw.playerName.trim() ? raw.playerName : 'Player',
+  lane: typeof raw?.lane === 'string' && raw.lane ? raw.lane : null,
+  date: typeof raw?.date === 'string' && raw.date ? raw.date : null,
+  amount: toNumber(raw?.amount),
+  status: raw?.status === 'Available' ? 'Available' : 'Pending', // unknown money is never shown as Available
+})
+
+// Normalizes any /wallet payload so a missing or malformed one becomes zeros and [].
+export const normalizeWallet = (raw) => {
+  const source = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {}
+  const list = Array.isArray(source.transactions) ? source.transactions.filter((t) => t && typeof t === 'object') : []
+  return {
+    available: toNumber(source.available),
+    pending: toNumber(source.pending),
+    totalEarned: toNumber(source.totalEarned),
+    players: toNumber(source.players),
+    transactions: list.map(normalizeTransaction),
+  }
+}
+
+// GET /wallet — always resolves to a normalized wallet; failures are handled by the caller.
+export const getCoachWallet = () => request('/wallet').then(normalizeWallet)
+=======
 // GET /materials — coach token returns only the coach's own rows (newest first).
 export const getCoachMaterials = () => request('/materials')
 export const createCoachMaterial = (body) => request('/materials', { method: 'POST', body }) // body: { type, title, tagline?, description?, thumbnailUrl?, link }
@@ -34,3 +69,4 @@ export const uploadCoachMaterial = (file) => {
   form.append('file', file)
   return uploadRequest('/uploads/materials', form)
 }
+>>>>>>> 644532e26df1b4856ceeff9b81c8c8481e28cf1d

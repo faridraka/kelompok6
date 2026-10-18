@@ -1,4 +1,5 @@
 import { z } from '@hono/zod-openapi'
+import { PUBLIC_BASE_URL, BUCKET } from '../lib/s3.js'
 
 export const LaneEnum = z.enum(['gold', 'exp', 'mid', 'jungle', 'roam']).openapi({ example: 'mid' })
 
@@ -60,14 +61,24 @@ export const UpdateCoachMeBody = z
     price: z.number().int().min(0).openapi({ example: 400000 }),
     bio: z.string().max(300).openapi({ example: 'Head Coach...' }),
     lanes: z.array(LaneEnum).min(1).max(3).openapi({ example: ['mid'] }),
-    avatar: z.string().url().nullable().optional().openapi({ example: null }),
+    avatar: z
+      .string()
+      .url()
+      .refine((url) => url.startsWith(`${PUBLIC_BASE_URL}/${BUCKET}/avatars/`), {
+        message: 'Avatar harus URL bucket avatars',
+      })
+      .nullable()
+      .optional()
+      .openapi({ example: null }),
   })
   .openapi('UpdateCoachMeBody')
 
+// .strict(): a coach body with an invalid field must not fall through to this shape in the union.
 export const UpdatePlayerMeBody = z
   .object({
     name: z.string().min(2).max(60).openapi({ example: 'Budi' }),
   })
+  .strict()
   .openapi('UpdatePlayerMeBody')
 
 export const UpdateMeBody = z.union([UpdateCoachMeBody, UpdatePlayerMeBody]).openapi('UpdateMeBody')

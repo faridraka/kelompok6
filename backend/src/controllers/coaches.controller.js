@@ -1,23 +1,8 @@
 import { supabaseAdmin } from '../lib/supabase.js'
 import { AppError } from '../utils/error.js'
-
-const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+import { DAYS, emptyAvailability, normalizeTime } from '../utils/availability.js'
 
 const dbError = (error) => new Error(error.message ?? 'Database error', { cause: error })
-
-// Helper users/availability tidak di-export (file itu tidak boleh diubah), jadi ditulis ulang di sini.
-const emptyAvailability = () => ({
-  monday: [],
-  tuesday: [],
-  wednesday: [],
-  thursday: [],
-  friday: [],
-  saturday: [],
-  sunday: [],
-})
-
-// coach_availability.start_time bisa kembali sebagai 'HH:MM:SS' dari Postgres: ambil 'HH:MM'.
-const normalizeTime = (value) => String(value ?? '').slice(0, 5)
 
 const NO_TESTIMONIAL = { quote: 'No reviews yet.', reviewerInitials: '', reviewerName: '' }
 
@@ -46,52 +31,54 @@ const toRating = (avg) => {
   return Math.min(5, Math.max(0, n))
 }
 
+// Embed to-one bisa datang sebagai objek atau array: ambil elemen pertamanya.
+const one = (value) => (Array.isArray(value) ? value[0] : value) ?? null
+
+// PostgREST diam-diam membatasi 1.000 baris per respons: fetch bertahap dengan .range() blok 1.000.
+const fetchAllRows = async (buildQuery) => {
+  const pageSize = 1000
+  const rows = []
+  let from = 0
+  for (;;) {
+    const { data, error } = await buildQuery().range(from, from + pageSize - 1)
+    if (error) throw dbError(error)
+    rows.push(...(data ?? []))
+    if (!data || data.length < pageSize) break
+    from += pageSize
+  }
+  return rows
+}
+
 // Membangun kartu publik untuk N coach sekaligus (tanpa N+1).
 // coachProfiles: baris coach_profiles (hanya kolom yang diizinkan, tanpa academy_label).
 const loadCards = async (coachProfiles) => {
   if (!coachProfiles.length) return []
   const ids = coachProfiles.map((cp) => cp.id)
 
-  const [{ data: profiles, error: profilesError }, { data: stats, error: statsError }, { data: availRows, error: availError }, { data: orders, error: ordersError }] =
+  const [{ data: profiles, error: profilesError }, { data: stats, error: statsError }, { data: availRows, error: availError }, vodRows, { data: ratingRows, error: ratingsError }] =
     await Promise.all([
       supabaseAdmin.from('profiles').select('id, name').in('id', ids),
       supabaseAdmin.from('coach_rating_stats').select('coach_id, rating_avg').in('coach_id', ids),
       supabaseAdmin.from('coach_availability').select('coach_id, day, start_time').in('coach_id', ids),
-      supabaseAdmin.from('orders').select('id, coach_id, player_id').in('coach_id', ids),
+      // VOD per coach lewat filter embedded orders!inner, di-halaman karena bisa > 1.000 baris.
+      fetchAllRows(() =>
+        supabaseAdmin
+          .from('sessions')
+          .select('id, orders!inner(coach_id)')
+          .in('orders.coach_id', ids)
+          .not('vod_url', 'is', null),
+      ),
+      // Review + nama player langsung dari join ratings -> orders -> profiles.
+      supabaseAdmin
+        .from('ratings')
+        .select('rating, review, rated_at, orders!inner(coach_id, player:profiles!orders_player_id_fkey(name))')
+        .in('orders.coach_id', ids)
+        .not('review', 'is', null),
     ])
   if (profilesError) throw dbError(profilesError)
   if (statsError) throw dbError(statsError)
   if (availError) throw dbError(availError)
-  if (ordersError) throw dbError(ordersError)
-
-  const orderIds = (orders ?? []).map((o) => o.id)
-  const orderById = new Map((orders ?? []).map((o) => [o.id, o]))
-
-  // vodsCoached = jumlah session coach ini (via orders.coach_id) yang vod_url-nya tidak null.
-  // ratings + nama player untuk testimonial. Keduanya batched; dilewati bila coach belum punya order.
-  let sessions = []
-  let ratings = []
-  if (orderIds.length) {
-    const [{ data: sessionRows, error: sessionsError }, { data: ratingRows, error: ratingsError }] = await Promise.all([
-      supabaseAdmin.from('sessions').select('order_id, vod_url').in('order_id', orderIds).not('vod_url', 'is', null),
-      supabaseAdmin.from('ratings').select('order_id, rating, review, rated_at').in('order_id', orderIds),
-    ])
-    if (sessionsError) throw dbError(sessionsError)
-    if (ratingsError) throw dbError(ratingsError)
-    sessions = sessionRows ?? []
-    ratings = ratingRows ?? []
-  }
-
-  const playerIds = [...new Set((orders ?? []).map((o) => o.player_id).filter(Boolean))]
-  let playerNames = new Map()
-  if (playerIds.length) {
-    const { data: players, error: playersError } = await supabaseAdmin
-      .from('profiles')
-      .select('id, name')
-      .in('id', playerIds)
-    if (playersError) throw dbError(playersError)
-    playerNames = new Map((players ?? []).map((p) => [p.id, p.name]))
-  }
+  if (ratingsError) throw dbError(ratingsError)
 
   const nameById = new Map((profiles ?? []).map((p) => [p.id, p.name]))
   const avgByCoach = new Map((stats ?? []).map((s) => [s.coach_id, s.rating_avg]))
@@ -105,21 +92,22 @@ const loadCards = async (coachProfiles) => {
     for (const day of DAYS) bucket[day].sort()
   }
 
+  // vodsCoached = jumlah session coach ini (via join orders) yang vod_url-nya tidak null.
   const vodsByCoach = new Map(ids.map((id) => [id, 0]))
-  for (const s of sessions) {
-    const order = orderById.get(s.order_id)
-    if (!order || s.vod_url == null || s.vod_url === '') continue
-    vodsByCoach.set(order.coach_id, (vodsByCoach.get(order.coach_id) ?? 0) + 1)
+  for (const row of vodRows) {
+    const coachId = one(row.orders)?.coach_id
+    if (coachId != null && vodsByCoach.has(coachId)) vodsByCoach.set(coachId, vodsByCoach.get(coachId) + 1)
   }
 
+  // Review untuk testimonial, nama player ikut dari join embedded (orders!inner -> profiles).
   const ratingsByCoach = new Map(ids.map((id) => [id, []]))
-  for (const r of ratings ?? []) {
-    const order = orderById.get(r.order_id)
+  for (const r of ratingRows ?? []) {
+    const order = one(r.orders)
     if (!order) continue
     const review = typeof r.review === 'string' ? r.review.trim() : ''
     if (!review) continue
     const list = ratingsByCoach.get(order.coach_id)
-    if (list) list.push({ rating: r.rating, review, ratedAt: r.rated_at, playerName: playerNames.get(order.player_id) ?? 'Player' })
+    if (list) list.push({ rating: r.rating, review, ratedAt: r.rated_at, playerName: one(order.player)?.name ?? 'Player' })
   }
   const testimonialByCoach = new Map()
   for (const [coachId, list] of ratingsByCoach) {
@@ -218,6 +206,7 @@ export const coachesController = {
       .maybeSingle()
     if (error) throw dbError(error)
     if (!coach) throw new AppError('Coach tidak ditemukan', 404)
+    if (!isBookable(coach)) throw new AppError('Coach tidak ditemukan', 404)
 
     const [card] = await loadCards([coach])
 

@@ -3,7 +3,7 @@ import { walletController } from '../controllers/wallet.controller.js'
 import { auth, requireRole } from '../middleware/auth.middleware.js'
 import { jsonRes } from '../utils/helper.js'
 import { authErrors } from '../schemas/common.schema.js'
-import { WalletResponse } from '../schemas/wallet.schema.js'
+import { WalletResponseSchema } from '../schemas/wallet.schema.js'
 
 const router = new OpenAPIHono()
 
@@ -13,12 +13,13 @@ const getWalletRoute = createRoute({
   tags: ['Wallet'],
   summary: 'Dompet coach',
   description:
-    'Ringkasan pendapatan coach yang login, dihitung dari harga coach + order miliknya ' +
-    '(tanpa tabel baru). 1 order = 1 kredit sebesar harga coach. completed -> Available, lainnya Pending.',
+    'Ringkasan pendapatan coach yang login, dihitung dari order miliknya (kolom subtotal, tanpa pajak) ' +
+    'dan tanpa order berstatus pending_payment. 1 order = 1 player terdaftar = 1 transaksi. ' +
+    'completed -> Available, selain itu Pending.',
   middleware: [auth, requireRole('coach')],
   security: [{ Bearer: [] }],
   responses: {
-    200: jsonRes(WalletResponse, 'Dompet coach'),
+    200: jsonRes(WalletResponseSchema, 'Dompet coach'),
     ...authErrors,
   },
 })

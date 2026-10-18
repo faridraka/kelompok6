@@ -10,8 +10,8 @@ import coachesRoutes from './coaches.route.js'
 import materialRoutes from './material.route.js'
 import ratingsRoutes from './ratings.route.js'
 import reviewRoutes from './review.route.js'
-import walletRoutes from './wallet.route.js'
 import paymentRoutes from './payment.route.js'
+import walletRoutes from './wallet.route.js'
 
 const routes = new OpenAPIHono()
 
@@ -26,7 +26,7 @@ routes.route('/users', availabilityRoutes)
 routes.route('/coaches', coachesRoutes)
 routes.route('/materials', materialRoutes)
 routes.route('/ratings', ratingsRoutes)
-routes.route('/wallet', walletRoutes)
 routes.route('/', paymentRoutes)
+routes.route('/wallet', walletRoutes)
 
 export default routes
