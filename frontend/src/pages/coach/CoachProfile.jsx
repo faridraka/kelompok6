@@ -9,7 +9,12 @@ import { Async } from '../../components/player/ui'
 import { useAsync } from '../../hooks/useAsync'
 
 const load = async () => {
-  const [coach, ratings, availability, wallet] = await Promise.all([getCoachProfile(), getCoachRatings(), getCoachAvailability(), getCoachWallet()])
+  const [coach, ratings, availability, wallet] = await Promise.all([
+    getCoachProfile(),
+    getCoachRatings(),
+    getCoachAvailability(),
+    getCoachWallet().catch(() => null), // the wallet is optional: the page must render without it
+  ])
   return { coach, stats: ratingStats(ratings), availability, wallet } // the rating is read-only and comes from the same list as the dashboard
 }
 
@@ -29,7 +34,7 @@ const CoachProfile = () => {
               <ProfileSummary coach={coach} stats={stats} availability={availability} />
               <ProfileForm coach={coach} onSaved={state.reload} />
             </div>
-            <WalletCard wallet={wallet} price={coach.price} />
+            <WalletCard wallet={wallet} />
             <AvailabilityForm availability={availability} onSaved={state.reload} />
           </div>
         )}

@@ -1,16 +1,16 @@
-    import { useMemo, useState, useEffect } from 'react'
-    import { useSearchParams } from 'react-router'
-    import { FiSearch } from 'react-icons/fi'
+import { useMemo, useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router'
+import { FiSearch } from 'react-icons/fi'
 
-    import { generateCoaches } from '../data/coaches'
-    import CoachCard from '../components/coaches/CoachCard'
-    import LaneFilter from '../components/coaches/LaneFilter'
+import { getCoaches } from '../api/coaches'
+import CoachCard from '../components/coaches/CoachCard'
+import LaneFilter from '../components/coaches/LaneFilter'
+import { useAsync } from '../hooks/useAsync'
 
-    const ALL_COACHES = generateCoaches(9)
-
-    const CoachesPage = () => {
+const CoachesPage = () => {
     const [searchParams, setSearchParams] = useSearchParams()
     const [query, setQuery] = useState('')
+    const state = useAsync(getCoaches)
 
     const [selectedLanes, setSelectedLanes] = useState(() => {
         const initial = searchParams.get('role')
@@ -39,18 +39,18 @@
         })
     }
 
+    const allCoaches = state.data ?? []
     const filteredCoaches = useMemo(() => {
         const q = query.trim().toLowerCase()
-        return ALL_COACHES.filter((coach) => {
-        const laneMatch = selectedLanes.size === 0 || coach.lanes.some((l) => selectedLanes.has(l))
+        return allCoaches.filter((coach) => {
+        const laneMatch = selectedLanes.size === 0 || (coach.lanes ?? []).some((l) => selectedLanes.has(l))
         const queryMatch =
             q === '' ||
-            coach.name.toLowerCase().includes(q) ||
-            coach.academyLabel.toLowerCase().includes(q) ||
-            coach.mainHero.toLowerCase().includes(q)
+            String(coach.name ?? '').toLowerCase().includes(q) ||
+            String(coach.mainHero ?? '').toLowerCase().includes(q)
         return laneMatch && queryMatch
         })
-    }, [query, selectedLanes])
+    }, [allCoaches, query, selectedLanes])
 
     return (
         <div className="mx-auto max-w-[1650px] px-6 py-16 lg:px-8 lg:py-20">
@@ -80,17 +80,20 @@
             </div>
         </div>
 
-        {filteredCoaches.length > 0 ? (
+        {state.error && <p className="mt-16 text-center text-sm text-red-300">{String(state.error?.message ?? state.error)}</p>}
+        {!state.loading && !state.error && filteredCoaches.length > 0 && (
             <div className="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {filteredCoaches.map((coach) => (
                 <CoachCard key={coach.id} coach={coach} />
             ))}
             </div>
-        ) : (
+        )}
+        {!state.loading && !state.error && filteredCoaches.length === 0 && (
             <p className="mt-16 text-center text-white/60">No coaches match your filters right now.</p>
         )}
+        {state.loading && <p className="mt-16 text-center text-white/50">Loading coaches…</p>}
         </div>
     )
     }
 
-    export default CoachesPage
+export default CoachesPage

@@ -18,8 +18,13 @@ export const formatSlot = (iso) => {
 
 // Bookable 1-hour starts for the next WINDOW_DAYS, taken from the coach's
 // weekly availability. Past slots today (within the booking buffer) are hidden.
-const buildOptions = (availability) => {
+// bookedSlots = starts other players already hold (ISO strings); compared by
+// epoch, because the DB serialises timestamps in a different offset format.
+const buildOptions = (availability, bookedSlots = []) => {
   const av = normalizeAvailability(availability)
+  const booked = new Set(
+    bookedSlots.map((iso) => new Date(iso).getTime()).filter(Number.isFinite),
+  )
   const nowJakarta = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }))
   const days = []
   for (let offset = 0; offset < WINDOW_DAYS; offset++) {
@@ -30,6 +35,7 @@ const buildOptions = (availability) => {
     if (offset === 0) {
       hours = hours.filter((h) => new Date(slotIso(ymd, h)).getTime() - nowJakarta.getTime() > BOOKING_BUFFER_MS)
     }
+    hours = hours.filter((h) => !booked.has(new Date(slotIso(ymd, h)).getTime()))
     if (hours.length) days.push({ ymd, display: dayDisplay(ymd), hours })
   }
   return days
@@ -37,8 +43,8 @@ const buildOptions = (availability) => {
 
 // Pick exactly SCHEDULE_COUNT session times from the coach's availability.
 // value: ISO strings (YYYY-MM-DDTHH:00:00+07:00), sorted ascending.
-const SchedulePicker = ({ availability, value, onChange }) => {
-  const days = buildOptions(availability)
+const SchedulePicker = ({ availability, bookedSlots, value, onChange }) => {
+  const days = buildOptions(availability, bookedSlots)
   const picked = [...value].sort()
   const full = picked.length >= SCHEDULE_COUNT
 

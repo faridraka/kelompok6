@@ -50,15 +50,15 @@ const PlayerSessions = () => {
       <PageHeader title="Sessions" sub="Your live sessions with your coaches. Times are picked by you at checkout and fixed." />
       <div className="mb-8 flex flex-wrap gap-2">{FILTERS.map(([k, l]) => <Pill key={k} active={filter === k} onClick={() => setFilter(k)}>{l}</Pill>)}</div>
       <Async state={state}>
-        {({ orders, sessions, me }) => {
-          const groups = orders.map((o) => ({ o, list: sessions.filter((s) => s.orderId === o.id && (filter === 'all' || s.status === filter)) })).filter((g) => g.list.length)
+        {({ orders = [], sessions = [], me = {} }) => {
+          const groups = orders.map((o) => ({ o, list: sessions.filter((s) => s?.orderId === o.id && (filter === 'all' || s?.status === filter)) })).filter((g) => g.list.length)
           if (!groups.length) return <Empty>No sessions to show.</Empty>
           return (
             <div className="space-y-8">
               {groups.map(({ o, list }) => (
                 <section key={o.id} className="border border-white/10 bg-navy-900/70 backdrop-blur-sm">
                   <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-                    <div><h2 className="font-display text-xl font-bold uppercase text-white">{o.coach.name}</h2><p className="text-xs text-periwinkle-300">{laneLabel(o.lane)}</p></div>
+                    <div><h2 className="font-display text-xl font-bold uppercase text-white">{o?.coach?.name ?? 'Coach'}</h2><p className="text-xs text-periwinkle-300">{laneLabel(o?.lane)}</p></div>
                     {o.status === 'awaiting_rating' && <Link to={`/player/orders/${o.id}`} className={btn}>Rate your coach</Link>}
                   </div>
                   {list.map((s) => (

@@ -1,9 +1,6 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3, BUCKET } from "../lib/s3.js";
+import { s3, BUCKET, PUBLIC_BASE_URL } from "../lib/s3.js";
 import { AppError } from "../utils/error.js";
-
-// Bucket dipakai path-style, jadi public URL = endpoint/bucket/key.
-const PUBLIC_BASE_URL = "https://kencana.basic.box.cloudeka.id";
 
 const safeName = (name) =>
   String(name || "file").replace(/\s+/g, "_").replace(/[^a-zA-Z0-9._-]/g, "");
@@ -20,7 +17,8 @@ const uploadTo = async (folder, file) => {
         ContentType: file.type || "application/octet-stream",
       }),
     );
-  } catch {
+  } catch (err) {
+    console.error(`S3 upload gagal (${folder}):`, err?.name, "-", err?.message);
     throw new AppError("Gagal mengunggah file", 500);
   }
   return `${PUBLIC_BASE_URL}/${BUCKET}/${key}`;
@@ -41,6 +39,14 @@ export const uploadController = {
     if (!file || typeof file.arrayBuffer !== "function")
       throw new AppError("File tidak ditemukan", 400);
     const url = await uploadTo("vods", file);
+    return c.json({ url }, 200);
+  },
+  // POST /uploads/materials — body multipart { file }. Hanya coach (requireRole di route).
+  material: async (c) => {
+    const { file } = c.req.valid("form");
+    if (!file || typeof file.arrayBuffer !== "function")
+      throw new AppError("File tidak ditemukan", 400);
+    const url = await uploadTo("materials", file);
     return c.json({ url }, 200);
   },
 };

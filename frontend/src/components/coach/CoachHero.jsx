@@ -19,7 +19,7 @@ const CoachHero = ({ coach, avg, status, issues }) => (
     <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 pb-12 text-center">
       <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-periwinkle-300">Coach dashboard</p>
       <p className="mt-3 font-display text-xl font-bold uppercase tracking-wide text-white">Welcome back,</p>
-      <h1 className="font-display text-5xl font-bold uppercase leading-none text-white sm:text-6xl lg:text-7xl">{coach.name}</h1>
+      <h1 className="font-display text-5xl font-bold uppercase leading-none text-white sm:text-6xl lg:text-7xl">{coach?.name ?? 'Coach'}</h1>
       <p className="mt-4 text-sm text-white">{avg ? `Rated ${avg.toFixed(1)}/5` : 'No ratings yet'}</p>
       <p className={`mt-2 text-sm font-semibold ${issues ? 'text-gold-400' : 'text-white'}`}>{status}</p>
     </div>

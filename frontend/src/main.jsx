@@ -6,6 +6,7 @@ import { RouterProvider } from 'react-router/dom'
 import './index.css'
 
 import App from './App.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import LandingPage from './pages/LandingPage.jsx'
 import CoachesPage from './pages/CoachesPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
@@ -27,6 +28,7 @@ import CoachSchedule from './pages/coach/CoachSchedule.jsx'
 import CoachRecords from './pages/coach/CoachRecords.jsx'
 import CoachReviews from './pages/coach/CoachReviews.jsx'
 import CoachProfile from './pages/coach/CoachProfile.jsx'
+import CoachMaterials from './pages/coach/CoachMaterials.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 import { protectedLoader, guestLoader, coachOnlyLoader, playerOnlyLoader, coachRedirectLoader } from './routes/authMiddleware'
 
@@ -34,6 +36,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     Component: App,
+    ErrorBoundary: ErrorBoundary,
     loader: coachRedirectLoader,
     children: [
       { index: true, Component: LandingPage },
@@ -49,6 +52,7 @@ const router = createBrowserRouter([
   {
     path: '/coach',
     Component: CoachLayout,
+    ErrorBoundary: ErrorBoundary,
     loader: coachOnlyLoader,
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
@@ -56,6 +60,7 @@ const router = createBrowserRouter([
       { path: 'schedule', Component: CoachSchedule },
       { path: 'records', Component: CoachRecords },
       { path: 'reviews', Component: CoachReviews },
+      { path: 'materials', Component: CoachMaterials },
       { path: 'profile', Component: CoachProfile },
       { path: '*', element: <Navigate to="/coach/dashboard" replace /> },
     ],
@@ -63,6 +68,7 @@ const router = createBrowserRouter([
   {
     path: '/player',
     Component: PlayerLayout,
+    ErrorBoundary: ErrorBoundary,
     loader: playerOnlyLoader,
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
@@ -74,7 +80,7 @@ const router = createBrowserRouter([
       { path: 'orders/:id', Component: PlayerOrder },
     ],
   },
-  { path: '*', Component: NotFoundPage }
+  { path: '*', Component: NotFoundPage, ErrorBoundary: ErrorBoundary }
 ])
 
 createRoot(document.getElementById('root')).render(

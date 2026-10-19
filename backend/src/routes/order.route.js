@@ -14,7 +14,8 @@ const createOrderRoute = createRoute({
   summary: 'Buat order',
   description:
     'Player memesan paket 3 sesi dari seorang coach. Harga dihitung server dari harga coach, ' +
-    'dan 3 sesi dibuat tanpa jadwal (coach yang mengatur jadwalnya).',
+    'dan 3 sesi dibuat langsung terjadwal sesuai pilihan player (tanpa Meet link; ' +
+    'link dibuat saat pembayaran paid).',
   middleware: [auth, requireRole('player')],
   security: [{ Bearer: [] }],
   request: {

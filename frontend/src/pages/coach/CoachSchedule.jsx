@@ -6,7 +6,7 @@ import banner from '../../assets/coach/schedule-banner.webp'
 import NextSessionCard from '../../components/coach/NextSessionCard'
 import SessionDetail from '../../components/coach/SessionDetail'
 import WeekBoard from '../../components/coach/WeekBoard'
-import { plural } from '../../components/coach/stats'
+import { plural, sessionsWithOrder } from '../../components/coach/stats'
 import { Empty, btnGhost } from '../../components/coach/ui'
 import { Async, PageHeader, Pill } from '../../components/player/ui'
 import { useAsync } from '../../hooks/useAsync'
@@ -15,9 +15,9 @@ import { addDays, dayKey, mondayOf, rangeLabel } from '../../utils/schedule'
 const FILTERS = [['all', 'All'], ['scheduled', 'Upcoming'], ['completed', 'Completed']]
 const load = async () => {
   const [orders, sessions] = await Promise.all([getCoachOrders(), getCoachSessions()])
-  return { orders, sessions }
+  return { orders, sessions: sessionsWithOrder(orders, sessions) }
 }
-const byDate = (a, b) => a.scheduledAt.localeCompare(b.scheduledAt)
+const byDate = (a, b) => (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? '')
 const toDetail = () => document.getElementById('session-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
 const CoachSchedule = () => {
@@ -46,21 +46,29 @@ const CoachSchedule = () => {
   }
 
   // Everything the page draws, once the data is there (kept while it reloads after a save).
-  // Every session has a date (picked by the player at checkout), so plain date sorts are enough.
+  // Real BE sessions can be unscheduled (scheduledAt null): they are listed separately
+  // below the board and scheduled from the detail panel. Date sorts are null-safe.
   const view = state.data && (() => {
     const { orders, sessions } = state.data
-    const upcoming = sessions.filter((s) => s.status === 'scheduled').sort(byDate)
+    // Only sessions whose order the coach can see. A session without a matching order (e.g. one
+    // belonging to an order the API hides) would render with an undefined order and crash on o.lane.
+    const orderIds = new Set(orders.map((o) => o.id))
+    const mine = sessions.filter((s) => orderIds.has(s.orderId))
+    const scheduled = mine.filter((s) => s.scheduledAt)
+    const unscheduled = mine.filter((s) => !s.scheduledAt && s.status !== 'completed').sort((a, b) => a.sessionNumber - b.sessionNumber)
+    const upcoming = scheduled.filter((s) => s.status === 'scheduled').sort(byDate)
     const next = upcoming[0] // the closest unfinished session: the NEXT card and the NEXT tag on the board
-    const selected = sessions.find((s) => s.id === pick) ?? next ?? [...sessions].sort(byDate).at(-1)
+    const selected = mine.find((s) => s.id === pick) ?? next ?? [...mine].sort(byDate).at(-1)
     const today = dayKey(new Date())
     const start = weekStart ?? mondayOf(selected?.scheduledAt ? dayKey(selected.scheduledAt) : today)
     // One column per day of the shown week; the filter only decides which sessions are drawn.
-    const visible = sessions.filter((s) => filter === 'all' || s.status === filter).sort(byDate)
+    // Unscheduled sessions have no day, so they never enter the board (shown in their own list).
+    const visible = scheduled.filter((s) => filter === 'all' || s.status === filter).sort(byDate)
     const days = Array.from({ length: 7 }, (_, i) => addDays(start, i))
     const columns = days.map((day) => ({ day, list: visible.filter((s) => dayKey(s.scheduledAt) === day) }))
     // Summary of the shown week (not affected by the filter).
-    const week = sessions.filter((s) => days.includes(dayKey(s.scheduledAt)))
-    return { orders, next, selected, today, start, columns, total: week.length }
+    const week = scheduled.filter((s) => days.includes(dayKey(s.scheduledAt)))
+    return { orders, next, selected, today, start, columns, total: week.length, unscheduled }
   })()
 
   return (
@@ -100,6 +108,25 @@ const CoachSchedule = () => {
 
       {view && (
         <>
+          {view.unscheduled.length > 0 && (
+            <section aria-label="Needs scheduling" className="mb-6 rounded-md border border-gold-400/40 bg-navy-900/70 p-4">
+              <p className="font-display text-sm font-bold uppercase tracking-wide text-gold-400">
+                Needs scheduling ({view.unscheduled.length})
+              </p>
+              <p className="mt-1 text-xs text-white/60">New orders arrive without a date. Pick one to set its time in the panel below.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {view.unscheduled.map((s) => {
+                  const o = view.orders.find((x) => x.id === s.orderId)
+                  return (
+                    <button key={s.id} type="button" onClick={() => select(s.id)}
+                      className={`${btnGhost} ${view.selected?.id === s.id ? 'border-white text-white' : ''}`}>
+                      {o?.player?.name ?? 'Player'} · Session {s.sessionNumber}/{s.totalSessions}
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          )}
           {view.columns.every((c) => !c.list.length)
             ? <Empty>No sessions this week.</Empty>
             : <WeekBoard columns={view.columns} orders={view.orders} today={view.today} selectedId={view.selected?.id} nextId={view.next?.id} onSelect={select} />}

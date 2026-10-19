@@ -50,17 +50,6 @@ export const ScheduleSessionParams = z.object({
   }),
 })
 
-export const ScheduleSessionBody = z.object({
-  scheduledAt: z.string().datetime({ offset: true }).openapi({
-    example: '2026-10-03T20:00:00+07:00',
-    description: 'Waktu mulai sesi (ISO 8601).',
-  }),
-  scheduledEnd: z.string().datetime({ offset: true }).openapi({
-    example: '2026-10-03T21:00:00+07:00',
-    description: 'Waktu selesai sesi (ISO 8601).',
-  }),
-})
-
 export const RecordingBody = z.object({
   url: z.string().url().openapi({
     example: 'https://kencana.basic.box.cloudeka.id/metagames-bucket-li17ed/vods/video.mp4',

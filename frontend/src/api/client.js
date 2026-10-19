@@ -2,7 +2,7 @@ import { clearSession, getAccessToken, getSession, setSession } from '../utils/s
 
 // Set VITE_USE_MOCK=false in frontend/.env once the backend is ready.
 export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false'
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
 // Multipart upload (FormData). The JSON `request` above can't send files.
 export const uploadRequest = async (path, form) => {
